@@ -224,6 +224,35 @@ button:disabled { opacity:.4; cursor:default; background:var(--surface); }
     <div class="tab-panel" id="tab-stats">
       <div class="tir-grid" id="tir-grid"></div>
       <div class="insights" id="insights-grid"></div>
+
+      <!-- Variability metrics (CONGA / MODD / MAGE) -->
+      <div class="chart-card" style="margin-bottom:1rem">
+        <div class="chart-title">Glycemic variability metrics by phase</div>
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:1rem;line-height:1.5;background:#f0ede5;border-radius:6px;padding:.65rem .875rem">
+          <strong>CONGA(1)</strong> — SD of glucose change over 1-hour windows (short-term excursion size) ·
+          <strong>MODD</strong> — mean absolute difference between same time on consecutive days (day-to-day reproducibility) ·
+          <strong>MAGE</strong> — mean amplitude of excursions exceeding 1 SD (clinically significant swings)
+        </div>
+        <canvas id="chart-variability" style="max-height:280px"></canvas>
+      </div>
+
+      <div style="overflow-x:auto;border:1px solid var(--border);border-radius:var(--r);margin-bottom:1.25rem">
+        <table class="stats-table" id="variability-table">
+          <thead>
+            <tr>
+              <th>Phase</th>
+              <th>CONGA(1) <span style="font-weight:400;text-transform:none;letter-spacing:0">(mg/dL)</span></th>
+              <th>MODD <span style="font-weight:400;text-transform:none;letter-spacing:0">(mg/dL)</span></th>
+              <th>MAGE <span style="font-weight:400;text-transform:none;letter-spacing:0">(mg/dL)</span></th>
+              <th>Std dev</th>
+              <th>CV %</th>
+              <th>Interpretation</th>
+            </tr>
+          </thead>
+          <tbody id="variability-tbody"></tbody>
+        </table>
+      </div>
+
       <div class="chart-card">
         <div class="chart-title">All metrics by phase</div>
         <table class="stats-table" id="stats-table">
@@ -651,9 +680,98 @@ function renderTimeline(data){
   });
 }
 
-// ── TAB 2: Stats ──────────────────────────────────────────
+// ── Glycemic variability metrics ──────────────────────────
+
+// CONGA(k): SD of differences G(t) - G(t - k*60 min)
+// k=1 → 1-hour window, standard clinical default
+function computeCONGA(readings, kHours=1) {
+  const windowMs = kHours * 60 * 60 * 1000;
+  const toleranceMs = 10 * 60 * 1000; // ±10 min tolerance
+  const sorted = [...readings].sort((a,b) => a.ts - b.ts);
+  const diffs = [];
+  for (let i = 0; i < sorted.length; i++) {
+    const target = sorted[i].ts.getTime() - windowMs;
+    // Binary search for reading closest to target time
+    let lo = 0, hi = i - 1, best = -1;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      const dt = Math.abs(sorted[mid].ts.getTime() - target);
+      if (dt <= toleranceMs) { best = mid; break; }
+      if (sorted[mid].ts.getTime() < target) lo = mid + 1;
+      else hi = mid - 1;
+    }
+    if (best >= 0) diffs.push(sorted[i].glucose - sorted[best].glucose);
+  }
+  return diffs.length >= 3 ? stddev(diffs) : null;
+}
+
+// MODD: Mean absolute difference between readings at same time ±15 min across consecutive days
+function computeMODD(readings) {
+  const dayMs = 24 * 60 * 60 * 1000;
+  const toleranceMs = 15 * 60 * 1000;
+  const sorted = [...readings].sort((a,b) => a.ts - b.ts);
+  const absDiffs = [];
+  for (let i = 0; i < sorted.length; i++) {
+    const target = sorted[i].ts.getTime() - dayMs;
+    let best = -1, bestDt = Infinity;
+    // Search near expected position
+    for (let j = i - 1; j >= 0 && sorted[i].ts - sorted[j].ts <= dayMs + toleranceMs; j--) {
+      const dt = Math.abs(sorted[j].ts.getTime() - target);
+      if (dt < bestDt && dt <= toleranceMs) { bestDt = dt; best = j; }
+    }
+    if (best >= 0) absDiffs.push(Math.abs(sorted[i].glucose - sorted[best].glucose));
+  }
+  return absDiffs.length >= 3 ? mean(absDiffs) : null;
+}
+
+// MAGE: Mean amplitude of glycemic excursions exceeding 1 SD
+// Algorithm: find alternating peaks and nadirs, keep excursions > 1 SD of the series
+function computeMAGE(readings) {
+  if (readings.length < 10) return null;
+  const vals = readings.map(r => r.glucose);
+  const sd = stddev(vals);
+  if (sd === 0) return null;
+
+  // Smooth with 5-point moving average to reduce noise before peak detection
+  const smoothed = vals.map((_, i) => {
+    const w = vals.slice(Math.max(0, i-2), Math.min(vals.length, i+3));
+    return mean(w);
+  });
+
+  // Find local peaks and nadirs (must differ from neighbours)
+  const peaks = [], nadirs = [];
+  for (let i = 1; i < smoothed.length - 1; i++) {
+    if (smoothed[i] > smoothed[i-1] && smoothed[i] >= smoothed[i+1]) peaks.push(smoothed[i]);
+    if (smoothed[i] < smoothed[i-1] && smoothed[i] <= smoothed[i+1]) nadirs.push(smoothed[i]);
+  }
+
+  // Interleave peaks and nadirs into excursion pairs
+  // MAGE: mean of |peak - nadir| where the excursion > 1 SD
+  const allTurns = [];
+  let pi = 0, ni = 0;
+  // Start with whichever comes first by index position in data
+  const peakIdxs = [], nadirIdxs = [];
+  for (let i = 1; i < smoothed.length - 1; i++) {
+    if (smoothed[i] > smoothed[i-1] && smoothed[i] >= smoothed[i+1]) peakIdxs.push({i, v: smoothed[i], type:'peak'});
+    if (smoothed[i] < smoothed[i-1] && smoothed[i] <= smoothed[i+1]) nadirIdxs.push({i, v: smoothed[i], type:'nadir'});
+  }
+  const turns = [...peakIdxs, ...nadirIdxs].sort((a,b) => a.i - b.i);
+
+  const excursions = [];
+  for (let i = 1; i < turns.length; i++) {
+    if (turns[i].type !== turns[i-1].type) {
+      const amp = Math.abs(turns[i].v - turns[i-1].v);
+      if (amp > sd) excursions.push(amp);
+    }
+  }
+  return excursions.length >= 1 ? mean(excursions) : null;
+}
+
+// ── renderStats ───────────────────────────────────────────
 function renderStats(data){
   const b=bucketByPhase(data);
+  const phaseReadings={menstrual:[],follicular:[],ovulatory:[],luteal:[]};
+  for(const r of data){const ph=getPhase(r.ts,periodData);if(ph&&phaseReadings[ph])phaseReadings[ph].push(r);}
 
   // TIR cards
   const tirGrid=document.getElementById('tir-grid');
@@ -684,40 +802,97 @@ function renderStats(data){
   const ig=document.getElementById('insights-grid');
   ig.innerHTML='';
   if(stats.length>=2){
-    // Highest average phase
     const hi=stats.reduce((a,b)=>b.s.mean>a.s.mean?b:a);
     const lo=stats.reduce((a,b)=>b.s.mean<a.s.mean?b:a);
-    const diff=hi.s.mean-lo.s.mean;
     ig.innerHTML+=`<div class="insight-card">
       <div class="insight-tag" style="color:${PC[hi.ph].line}">Highest glucose phase</div>
-      <div class="insight-text">Your <strong>${PC[hi.ph].label.toLowerCase()} phase</strong> has the highest average glucose at <strong>${hi.s.mean.toFixed(1)} mg/dL</strong> — that's <strong>${diff.toFixed(1)} mg/dL higher</strong> than your ${PC[lo.ph].label.toLowerCase()} phase (${lo.s.mean.toFixed(1)} mg/dL).</div>
+      <div class="insight-text">Your <strong>${PC[hi.ph].label.toLowerCase()} phase</strong> averages <strong>${hi.s.mean.toFixed(1)} mg/dL</strong> — ${(hi.s.mean-lo.s.mean).toFixed(1)} mg/dL above your ${PC[lo.ph].label.toLowerCase()} phase.</div>
     </div>`;
-
-    // Most variable phase
     const mv=stats.reduce((a,b)=>b.s.cv>a.s.cv?b:a);
     const lv=stats.reduce((a,b)=>b.s.cv<a.s.cv?b:a);
     ig.innerHTML+=`<div class="insight-card">
       <div class="insight-tag" style="color:${PC[mv.ph].line}">Most variable phase</div>
-      <div class="insight-text">Your <strong>${PC[mv.ph].label.toLowerCase()} phase</strong> shows the most glucose variability (CV ${mv.s.cv.toFixed(1)}%). Your <strong>${PC[lv.ph].label.toLowerCase()} phase</strong> is most stable (CV ${lv.s.cv.toFixed(1)}%).</div>
+      <div class="insight-text">Your <strong>${PC[mv.ph].label.toLowerCase()} phase</strong> is most variable (CV ${mv.s.cv.toFixed(1)}%). <strong>${PC[lv.ph].label}</strong> is most stable (CV ${lv.s.cv.toFixed(1)}%).</div>
     </div>`;
-
-    // Best TIR phase
     const bt=stats.reduce((a,b)=>b.s.tir>a.s.tir?b:a);
     const wt=stats.reduce((a,b)=>b.s.tir<a.s.tir?b:a);
     ig.innerHTML+=`<div class="insight-card">
       <div class="insight-tag" style="color:${PC[bt.ph].line}">Best time in range</div>
-      <div class="insight-text">Your <strong>${PC[bt.ph].label.toLowerCase()} phase</strong> keeps you in range most often (<strong>${bt.s.tir.toFixed(1)}%</strong>). Your <strong>${PC[wt.ph].label.toLowerCase()} phase</strong> has the most time out of range (${(100-wt.s.tir).toFixed(1)}% outside 70–140).</div>
+      <div class="insight-text"><strong>${PC[bt.ph].label}</strong> keeps you in range most often (<strong>${bt.s.tir.toFixed(1)}%</strong>). <strong>${PC[wt.ph].label}</strong> has the most time out of range (${(100-wt.s.tir).toFixed(1)}%).</div>
     </div>`;
-
-    // High spikes
     const hs=stats.reduce((a,b)=>b.s.vhi>a.s.vhi?b:a);
     ig.innerHTML+=`<div class="insight-card">
       <div class="insight-tag" style="color:${PC[hs.ph].line}">Most spikes above 180</div>
-      <div class="insight-text">Readings above 180 mg/dL are most frequent in your <strong>${PC[hs.ph].label.toLowerCase()} phase</strong> at <strong>${hs.s.vhi.toFixed(1)}%</strong> of readings. Median glucose across all phases ranges from ${Math.round(Math.min(...stats.map(x=>x.s.median)))} to ${Math.round(Math.max(...stats.map(x=>x.s.median)))} mg/dL.</div>
+      <div class="insight-text">Readings above 180 mg/dL are most frequent in your <strong>${PC[hs.ph].label.toLowerCase()} phase</strong> at <strong>${hs.s.vhi.toFixed(1)}%</strong> of readings.</div>
     </div>`;
   }
 
-  // Table
+  // ── CONGA / MODD / MAGE ──────────────────────────────
+  const vm={};
+  for(const ph of PHASES){
+    const r=phaseReadings[ph]; const s=phaseStats(b[ph]);
+    vm[ph]={
+      conga: r.length>=20?computeCONGA(r,1):null,
+      modd:  r.length>=20?computeMODD(r):null,
+      mage:  r.length>=20?computeMAGE(r):null,
+      sd:    s?s.sd:null, cv:s?s.cv:null,
+    };
+  }
+
+  destroyChart('variability');
+  const vctx=document.getElementById('chart-variability').getContext('2d');
+  charts.variability=new Chart(vctx,{
+    type:'bar',
+    data:{labels:PHASES.map(ph=>PC[ph].label),datasets:[
+      {label:'CONGA(1) — 1-hour excursion SD',data:PHASES.map(ph=>vm[ph].conga!=null?+vm[ph].conga.toFixed(1):null),backgroundColor:PHASES.map(ph=>PC[ph].line+'cc'),borderRadius:4},
+      {label:'MODD — day-to-day difference',data:PHASES.map(ph=>vm[ph].modd!=null?+vm[ph].modd.toFixed(1):null),backgroundColor:PHASES.map(ph=>PC[ph].bg),borderRadius:4,borderWidth:1.5,borderColor:PHASES.map(ph=>PC[ph].line+'88')},
+      {label:'MAGE — mean excursion amplitude',data:PHASES.map(ph=>vm[ph].mage!=null?+vm[ph].mage.toFixed(1):null),backgroundColor:PHASES.map(ph=>PC[ph].line+'44'),borderRadius:4,borderWidth:1.5,borderColor:PHASES.map(ph=>PC[ph].line)},
+    ]},
+    options:{responsive:true,animation:{duration:300},
+      plugins:{legend:{labels:{font:{family:'DM Sans',size:11}}},
+        tooltip:{mode:'index',intersect:false,callbacks:{
+          title:i=>PC[PHASES[i[0].dataIndex]].label+' phase',
+          label:i=>{const ph=PHASES[i[0].dataIndex];const v=[vm[ph].conga,vm[ph].modd,vm[ph].mage][i.datasetIndex];const n=['CONGA(1)','MODD','MAGE'][i.datasetIndex];return` ${n}: ${v!=null?v.toFixed(1)+' mg/dL':'insufficient data'}`;}
+        },backgroundColor:'#1a1814',padding:10,cornerRadius:6,titleFont:{family:'DM Sans',size:11},bodyFont:{family:'DM Sans',size:12}}},
+      scales:{x:{ticks:{font:{family:'DM Sans',size:11},color:'#1a1814'},grid:{display:false}},y:{ticks:{font:{family:'DM Sans',size:10},color:'#8a8070',callback:v=>v+' mg/dL'},grid:{color:'#f0ece4'}}}}
+  });
+
+  function vc(metric,val){
+    if(val==null)return'';
+    if(metric==='conga')return val<18?'metric-good':val<35?'metric-warn':'metric-bad';
+    if(metric==='modd') return val<20?'metric-good':val<40?'metric-warn':'metric-bad';
+    if(metric==='mage') return val<30?'metric-good':val<70?'metric-warn':'metric-bad';
+    if(metric==='cv')   return val<20?'metric-good':val<30?'metric-warn':'metric-bad';
+    return'';
+  }
+  function vi(v){
+    const sc=[];
+    if(v.conga!=null)sc.push(v.conga<18?1:v.conga<25?2:v.conga<35?3:4);
+    if(v.modd!=null) sc.push(v.modd<20?1:v.modd<30?2:v.modd<40?3:4);
+    if(v.mage!=null) sc.push(v.mage<30?1:v.mage<50?2:v.mage<70?3:4);
+    if(!sc.length)return'Insufficient data';
+    const a=sc.reduce((x,y)=>x+y,0)/sc.length;
+    if(a<=1.5)return'<span style="color:#2e7d52;font-weight:500">Very stable</span>';
+    if(a<=2.2)return'<span style="color:#546e7a">Moderate</span>';
+    if(a<=3.0)return'<span style="color:#bf6010">Elevated</span>';
+    return'<span style="color:#c0392b;font-weight:500">High variability</span>';
+  }
+
+  const vtbody=document.getElementById('variability-tbody');
+  vtbody.innerHTML='';
+  for(const ph of PHASES){
+    vtbody.innerHTML+=`<tr>
+      <td><span class="phase-pill"><span class="phase-swatch" style="background:${PC[ph].line}"></span>${PC[ph].label}</span></td>
+      <td class="${vc('conga',vm[ph].conga)}">${vm[ph].conga!=null?vm[ph].conga.toFixed(1):'—'}</td>
+      <td class="${vc('modd',vm[ph].modd)}">${vm[ph].modd!=null?vm[ph].modd.toFixed(1):'—'}</td>
+      <td class="${vc('mage',vm[ph].mage)}">${vm[ph].mage!=null?vm[ph].mage.toFixed(1):'—'}</td>
+      <td class="${vc('cv',vm[ph].cv)}">${vm[ph].sd!=null?vm[ph].sd.toFixed(1):'—'}</td>
+      <td class="${vc('cv',vm[ph].cv)}">${vm[ph].cv!=null?vm[ph].cv.toFixed(1)+'%':'—'}</td>
+      <td>${vi(vm[ph])}</td>
+    </tr>`;
+  }
+
+  // Main comprehensive stats table
   const tbody=document.getElementById('stats-tbody');
   tbody.innerHTML='';
   for(const ph of PHASES){
@@ -727,8 +902,7 @@ function renderStats(data){
     const sdClass=s.cv<=20?'metric-good':s.cv<=30?'metric-warn':'metric-bad';
     tbody.innerHTML+=`<tr>
       <td><span class="phase-pill"><span class="phase-swatch" style="background:${PC[ph].line}"></span>${PC[ph].label}</span></td>
-      <td>${s.mean.toFixed(1)}</td>
-      <td>${s.median.toFixed(1)}</td>
+      <td>${s.mean.toFixed(1)}</td><td>${s.median.toFixed(1)}</td>
       <td class="${sdClass}">${s.sd.toFixed(1)}</td>
       <td class="${sdClass}">${s.cv.toFixed(1)}%</td>
       <td class="${tirClass}">${s.tir.toFixed(1)}%</td>
