@@ -1,0 +1,1731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glucose & Cycle</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap');
+
+:root {
+  --bg: #faf9f6; --surface: #fff; --border: #e8e4dc;
+  --text: #1a1814; --muted: #8a8070;
+  --men: #c0392b; --fol: #546e7a; --ovu: #2e7d52; --lut: #bf6010;
+  --men-a: rgba(192,57,43,0.12); --fol-a: rgba(84,110,122,0.12);
+  --ovu-a: rgba(46,125,82,0.12); --lut-a: rgba(191,96,16,0.12);
+}
+* { box-sizing: border-box; margin:0; padding:0; }
+body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+header { padding:2rem 3rem 1.25rem; border-bottom:1px solid var(--border); display:flex; align-items:baseline; gap:1rem; }
+header h1 { font-family:'DM Serif Display',serif; font-size:1.6rem; font-weight:400; letter-spacing:-0.02em; }
+header span { font-size:0.75rem; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; }
+
+main { padding:1.75rem 3rem; max-width:1200px; }
+
+/* Upload */
+.upload-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem; }
+.upload-card { background:var(--surface); border:1.5px dashed var(--border); border-radius:12px; padding:1.5rem; cursor:pointer; transition:all .2s; }
+.upload-card:hover { border-color:#b0a898; background:#f5f3ef; }
+.upload-card.loaded { border-style:solid; border-color:#7cad4a; background:#f4f9ee; }
+.upload-card.drag { border-color:#777; background:#f5f3ef; }
+.upload-card input[type=file] { display:none; }
+.up-label { font-size:.68rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:.3rem; display:block; }
+.up-title { font-family:'DM Serif Display',serif; font-size:1.05rem; margin-bottom:.25rem; }
+.up-hint { font-size:.78rem; color:var(--muted); }
+.up-status { font-size:.75rem; margin-top:.6rem; color:#4a7a25; display:none; }
+.upload-card.loaded .up-status { display:block; }
+
+/* Tabs */
+.tabs { display:flex; gap:0; margin-bottom:1.5rem; border-bottom:1px solid var(--border); }
+.tab { font-size:.82rem; padding:.6rem 1.25rem; cursor:pointer; color:var(--muted); border-bottom:2px solid transparent; margin-bottom:-1px; transition:all .15s; background:none; border-top:none; border-left:none; border-right:none; font-family:'DM Sans',sans-serif; }
+.tab:hover { color:var(--text); }
+.tab.active { color:var(--text); border-bottom-color:var(--text); font-weight:500; }
+.tab-panel { display:none; }
+.tab-panel.active { display:block; }
+
+/* Controls row */
+.controls { display:flex; gap:.875rem; align-items:flex-end; margin-bottom:1.25rem; flex-wrap:wrap; }
+.ctrl-group { display:flex; flex-direction:column; gap:.2rem; }
+.ctrl-label { font-size:.67rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+select, button { font-family:'DM Sans',sans-serif; font-size:.82rem; padding:.45rem .8rem; border:1px solid var(--border); border-radius:6px; background:var(--surface); cursor:pointer; color:var(--text); }
+button.primary { background:var(--text); color:var(--bg); border-color:var(--text); font-weight:500; }
+button.primary:hover { background:#2d2a26; }
+button:hover:not(.primary) { background:#f0ece4; }
+button:disabled { opacity:.4; cursor:default; background:var(--surface); }
+
+/* Chart card */
+.chart-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:1.5rem; margin-bottom:1.25rem; }
+.chart-title { font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:1rem; }
+.chart-card canvas { max-height:360px; }
+
+/* Phase legend */
+.phase-legend { display:flex; gap:1.25rem; margin-bottom:1rem; flex-wrap:wrap; }
+.pl-item { display:flex; align-items:center; gap:.4rem; font-size:.76rem; color:var(--muted); }
+.pl-dot { width:9px; height:9px; border-radius:2px; flex-shrink:0; }
+
+/* Stats table */
+.stats-table { width:100%; border-collapse:collapse; font-size:.82rem; }
+.stats-table th { text-align:left; padding:.6rem .875rem; font-size:.67rem; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); background:var(--bg); border-bottom:1px solid var(--border); }
+.stats-table td { padding:.7rem .875rem; border-bottom:1px solid var(--border); }
+.stats-table tr:last-child td { border-bottom:none; }
+.stats-table tr:hover td { background:#f7f5f1; }
+.phase-pill { display:inline-flex; align-items:center; gap:.4rem; font-size:.75rem; font-weight:500; }
+.phase-swatch { width:8px; height:8px; border-radius:2px; }
+.metric-good { color:#2e7d52; font-weight:500; }
+.metric-warn { color:#bf6010; font-weight:500; }
+.metric-bad  { color:#c0392b; font-weight:500; }
+
+/* TIR bars */
+.tir-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1.25rem; }
+.tir-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:1rem 1.1rem; }
+.tir-phase { font-size:.67rem; font-weight:500; letter-spacing:.1em; text-transform:uppercase; margin-bottom:.7rem; }
+.tir-bar-wrap { margin-bottom:.35rem; }
+.tir-bar-label { display:flex; justify-content:space-between; font-size:.7rem; color:var(--muted); margin-bottom:.2rem; }
+.tir-bar-track { height:7px; border-radius:4px; background:#eee; overflow:hidden; }
+.tir-bar-fill { height:100%; border-radius:4px; transition:width .4s; }
+
+/* Day-of-cycle chart note */
+.doc-note { font-size:.75rem; color:var(--muted); margin-bottom:.875rem; line-height:1.5; background:#f0ede5; border-radius:8px; padding:.75rem 1rem; }
+
+/* Insight cards */
+.insights { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.25rem; }
+.insight-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:1rem 1.1rem; }
+.insight-tag { font-size:.67rem; font-weight:500; letter-spacing:.1em; text-transform:uppercase; margin-bottom:.4rem; }
+.insight-text { font-size:.82rem; line-height:1.5; color:var(--text); }
+.insight-text strong { font-weight:500; }
+
+/* Trend tab */
+.metric-toggle { display:flex; gap:.5rem; margin-bottom:1.25rem; flex-wrap:wrap; }
+.mtbtn { font-size:.78rem; padding:.35rem .9rem; border-radius:20px; border:1px solid var(--border); background:var(--surface); cursor:pointer; color:var(--muted); transition:all .15s; font-family:'DM Sans',sans-serif; }
+.mtbtn.active { background:var(--text); color:var(--bg); border-color:var(--text); }
+.trend-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1.25rem; }
+.trend-stat { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:1rem 1.1rem; }
+.trend-stat-label { font-size:.67rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:.35rem; }
+.trend-stat-val { font-family:'DM Serif Display',serif; font-size:1.6rem; line-height:1; }
+.trend-stat-sub { font-size:.72rem; color:var(--muted); margin-top:.25rem; }
+.trend-dir-up { color:#c0392b; } .trend-dir-dn { color:#2e7d52; } .trend-dir-flat { color:#546e7a; }
+
+/* Forecast tab */
+.forecast-note { font-size:.75rem; color:var(--muted); margin-bottom:.875rem; line-height:1.6; background:#f0ede5; border-radius:8px; padding:.75rem 1rem; }
+.forecast-note strong { color:var(--text); }
+.prophet-banner { background:#f4f9ee; border:1px solid #b8d98a; border-radius:10px; padding:1rem 1.25rem; margin-bottom:1.25rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
+.prophet-banner-text { font-size:.82rem; color:#3a5a1a; line-height:1.5; }
+.prophet-banner-text strong { color:#2a4a0a; }
+.prophet-btn { font-size:.78rem; padding:.4rem 1rem; border-radius:6px; border:1px solid #7cad4a; background:#fff; color:#3a5a1a; cursor:pointer; font-family:'DM Sans',sans-serif; white-space:nowrap; }
+.prophet-btn:hover { background:#f0f8e8; }
+.forecast-controls { display:flex; gap:.875rem; align-items:flex-end; margin-bottom:1.25rem; flex-wrap:wrap; }
+.prophet-status { font-size:.78rem; padding:.4rem .875rem; border-radius:6px; display:none; }
+.prophet-status.running { display:inline-block; background:#fef9ec; color:#7a5a0a; border:1px solid #e8d08a; }
+.prophet-status.done { display:inline-block; background:#f4f9ee; color:#3a5a1a; border:1px solid #b8d98a; }
+.prophet-status.error { display:inline-block; background:#fef0ee; color:#8a2a1a; border:1px solid #e8b8a8; }
+
+/* Empty */
+.empty { text-align:center; padding:3.5rem 2rem; color:var(--muted); }
+.empty h2 { font-family:'DM Serif Display',serif; font-size:1.3rem; font-weight:400; font-style:italic; margin-bottom:.5rem; color:var(--text); }
+.empty p { font-size:.82rem; }
+
+@media(max-width:700px){
+  header,main{padding:1.25rem}
+  .upload-grid,.tir-grid,.insights{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Glucose & Cycle</h1>
+  <span>analysis prototype v0.2</span>
+</header>
+
+<main>
+  <div class="upload-grid">
+    <div class="upload-card" id="cgm-card"
+      onclick="document.getElementById('cgm-input').click()"
+      ondragover="dov(event,'cgm-card')" ondragleave="dlv('cgm-card')" ondrop="drop(event,'cgm')">
+      <input type="file" id="cgm-input" accept=".csv" onchange="loadCGM(this.files[0])">
+      <span class="up-label">Step 1</span>
+      <div class="up-title">CGM data</div>
+      <div class="up-hint">FreeStyle Libre 3 · CSV from LibreView</div>
+      <div class="up-status" id="cgm-status"></div>
+    </div>
+    <div class="upload-card" id="period-card"
+      onclick="document.getElementById('period-input').click()"
+      ondragover="dov(event,'period-card')" ondragleave="dlv('period-card')" ondrop="drop(event,'period')">
+      <input type="file" id="period-input" accept=".txt,.csv" onchange="loadPeriods(this.files[0])">
+      <span class="up-label">Step 2</span>
+      <div class="up-title">Period data</div>
+      <div class="up-hint">Tab-separated .txt · "Oct 20, 2016&nbsp;&nbsp;Period Starts"</div>
+      <div class="up-status" id="period-status"></div>
+    </div>
+  </div>
+
+  <div class="upload-grid" style="grid-template-columns:1fr;margin-top:-.5rem">
+    <div class="upload-card" id="activity-card"
+      onclick="document.getElementById('activity-input').click()"
+      ondragover="dov(event,'activity-card')" ondragleave="dlv('activity-card')" ondrop="drop(event,'activity')">
+      <input type="file" id="activity-input" accept=".csv" onchange="loadActivity(this.files[0])">
+      <span class="up-label">Step 3 · Optional</span>
+      <div class="up-title">Activity data</div>
+      <div class="up-hint">Google Fit daily metrics CSV · enables step count & activity influence analysis</div>
+      <div class="up-status" id="activity-status"></div>
+    </div>
+  </div>
+
+  <div id="empty-state" class="empty">
+    <h2>Upload both files to begin</h2>
+    <p>Activity data is optional — adds step count analysis. Nothing is sent to any server.</p>
+  </div>
+
+  <div id="app" style="display:none">
+    <div class="controls">
+      <div class="ctrl-group">
+        <span class="ctrl-label">Time range</span>
+        <select id="range-select" onchange="renderAll()">
+          <option value="30">Last 30 days</option>
+          <option value="60">Last 60 days</option>
+          <option value="90" selected>Last 90 days</option>
+          <option value="180">Last 6 months</option>
+          <option value="365">Last year</option>
+          <option value="all">All data</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('timeline',this)">Timeline</button>
+      <button class="tab" onclick="showTab('stats',this)">Phase statistics</button>
+      <button class="tab" onclick="showTab('distribution',this)">Distribution</button>
+      <button class="tab" onclick="showTab('cycle-curve',this)">Day-of-cycle curve</button>
+      <button class="tab" onclick="showTab('daily-pattern',this)">Daily pattern</button>
+      <button class="tab" onclick="showTab('activity',this)">Activity influence</button>
+      <button class="tab" onclick="showTab('trend',this)">Per-cycle trend</button>
+      <button class="tab" onclick="showTab('forecast',this)">Forecast</button>
+    </div>
+
+    <!-- TAB 1: Timeline -->
+    <div class="tab-panel active" id="tab-timeline">
+      <div class="phase-legend">
+        <div class="pl-item"><div class="pl-dot" style="background:var(--men)"></div>Menstrual</div>
+        <div class="pl-item"><div class="pl-dot" style="background:var(--fol)"></div>Follicular</div>
+        <div class="pl-item"><div class="pl-dot" style="background:var(--ovu)"></div>Ovulatory</div>
+        <div class="pl-item"><div class="pl-dot" style="background:var(--lut)"></div>Luteal</div>
+        <div class="pl-item"><div class="pl-dot" style="background:#ddd;border:1px solid #ccc"></div>Target 70–140</div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Glucose over time, coloured by cycle phase</div>
+        <canvas id="chart-timeline"></canvas>
+      </div>
+    </div>
+
+    <!-- TAB 2: Phase statistics -->
+    <div class="tab-panel" id="tab-stats">
+      <div class="tir-grid" id="tir-grid"></div>
+      <div class="insights" id="insights-grid"></div>
+
+      <!-- Variability metrics (CONGA / MODD / MAGE) -->
+      <div class="chart-card" style="margin-bottom:1rem">
+        <div class="chart-title">Glycemic variability metrics by phase</div>
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:1rem;line-height:1.5;background:#f0ede5;border-radius:6px;padding:.65rem .875rem">
+          <strong>CONGA(1)</strong> — SD of glucose change over 1-hour windows (short-term excursion size) ·
+          <strong>MODD</strong> — mean absolute difference between same time on consecutive days (day-to-day reproducibility) ·
+          <strong>MAGE</strong> — mean amplitude of excursions exceeding 1 SD (clinically significant swings)
+        </div>
+        <canvas id="chart-variability" style="max-height:280px"></canvas>
+      </div>
+
+      <div style="overflow-x:auto;border:1px solid var(--border);border-radius:var(--r);margin-bottom:1.25rem">
+        <table class="stats-table" id="variability-table">
+          <thead>
+            <tr>
+              <th>Phase</th>
+              <th>CONGA(1) <span style="font-weight:400;text-transform:none;letter-spacing:0">(mg/dL)</span></th>
+              <th>MODD <span style="font-weight:400;text-transform:none;letter-spacing:0">(mg/dL)</span></th>
+              <th>MAGE <span style="font-weight:400;text-transform:none;letter-spacing:0">(mg/dL)</span></th>
+              <th>Std dev</th>
+              <th>CV %</th>
+              <th>Interpretation</th>
+            </tr>
+          </thead>
+          <tbody id="variability-tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">All metrics by phase</div>
+        <table class="stats-table" id="stats-table">
+          <thead>
+            <tr>
+              <th>Phase</th>
+              <th>Avg (mg/dL)</th>
+              <th>Median</th>
+              <th>Std dev</th>
+              <th>CV %</th>
+              <th>Time in range</th>
+              <th>Below 70</th>
+              <th>Above 140</th>
+              <th>Above 180</th>
+              <th>Readings</th>
+            </tr>
+          </thead>
+          <tbody id="stats-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 3: Distribution -->
+    <div class="tab-panel" id="tab-distribution">
+      <div class="chart-card" style="margin-bottom:1rem">
+        <div class="chart-title">Glucose value distribution per phase (percentile ranges)</div>
+        <canvas id="chart-dist"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Time in range breakdown per phase (%)</div>
+        <canvas id="chart-tir"></canvas>
+      </div>
+    </div>
+
+    <!-- TAB 4: Day-of-cycle curve -->
+    <div class="tab-panel" id="tab-cycle-curve">
+      <div class="doc-note">
+        Each point is the <strong>average glucose across all cycles</strong> for that day of the cycle.
+        Shading shows the 25th–75th percentile range. Only uses cycles where CGM data exists.
+        Phase boundaries are scaled to your personal average cycle length.
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Average glucose by day of cycle</div>
+        <canvas id="chart-doc"></canvas>
+      </div>
+    </div>
+
+    <!-- TAB 5: Daily pattern -->
+    <div class="tab-panel" id="tab-daily-pattern">
+      <div class="doc-note">
+        Shows the <strong>average glucose at each hour of the day</strong>, split by cycle phase. The <strong>6 AM reading</strong> is highlighted — this is your approximate fasting glucose, before food or activity influence the day. Phase boundaries are based on your actual period data.
+      </div>
+      <div class="tir-grid" id="fasting-cards" style="margin-bottom:1.25rem"></div>
+      <div class="chart-card">
+        <div class="chart-title">Average glucose by hour of day — all phases overlaid</div>
+        <canvas id="chart-hourly-overlay"></canvas>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem">
+        <div class="chart-card" style="margin-bottom:0">
+          <div class="chart-title">6 AM fasting glucose by phase (across all cycles)</div>
+          <canvas id="chart-fasting-bar"></canvas>
+        </div>
+        <div class="chart-card" style="margin-bottom:0">
+          <div class="chart-title">Hourly variability (std dev) by phase</div>
+          <canvas id="chart-hourly-sd"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 6: Activity influence -->
+    <div class="tab-panel" id="tab-activity">
+      <div id="activity-upload-prompt" style="display:none">
+        <div class="doc-note" style="background:#fef9ec;border:1px solid #e8d08a">
+          <strong>Upload your activity data</strong> (Step 3 above) to unlock this tab. Supports Google Fit daily metrics CSV.
+        </div>
+      </div>
+      <div id="activity-content">
+        <div class="doc-note">
+          Compares glucose metrics on <strong>high-step days vs low-step days</strong>, split by cycle phase.
+          Shows whether step count correlates with better time-in-range and lower average glucose in each phase.
+          <strong>Not medical advice</strong> — correlation only, not causation.
+        </div>
+        <div class="metric-toggle" style="margin-bottom:1rem">
+          <span style="font-size:.75rem;color:var(--muted);align-self:center;margin-right:.25rem">Split by:</span>
+          <button class="mtbtn active" onclick="setActivitySplit('steps',this)">Step count</button>
+          <button class="mtbtn" onclick="setActivitySplit('calories',this)">Calories</button>
+          <button class="mtbtn" onclick="setActivitySplit('move_minutes',this)">Move minutes</button>
+        </div>
+        <div class="trend-summary" id="activity-summary"></div>
+        <div class="chart-card">
+          <div class="chart-title" id="activity-chart-title">Avg glucose: high vs low step days — by phase</div>
+          <canvas id="chart-activity-compare"></canvas>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem">
+          <div class="chart-card" style="margin-bottom:0">
+            <div class="chart-title">Time in range: high vs low activity days</div>
+            <canvas id="chart-activity-tir"></canvas>
+          </div>
+          <div class="chart-card" style="margin-bottom:0">
+            <div class="chart-title">Step count distribution by cycle phase</div>
+            <canvas id="chart-steps-phase"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Daily steps & daily avg glucose over time</div>
+          <canvas id="chart-steps-timeline"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="tab-panel" id="tab-trend">
+      <div class="metric-toggle">
+        <span style="font-size:.75rem;color:var(--muted);align-self:center;margin-right:.25rem">Metric:</span>
+        <button class="mtbtn active" onclick="setTrendMetric('avg',this)">Avg glucose</button>
+        <button class="mtbtn" onclick="setTrendMetric('tir',this)">Time in range</button>
+        <button class="mtbtn" onclick="setTrendMetric('cv',this)">Variability (CV)</button>
+        <button class="mtbtn" onclick="setTrendMetric('hi',this)">% above 140</button>
+        <button class="mtbtn" onclick="setTrendMetric('luteal_avg',this)">Luteal avg</button>
+        <button class="mtbtn" onclick="setTrendMetric('follicular_avg',this)">Follicular avg</button>
+      </div>
+      <div class="trend-summary" id="trend-summary"></div>
+      <div class="chart-card">
+        <div class="chart-title" id="trend-chart-title">Average glucose per cycle</div>
+        <canvas id="chart-trend"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">All phase averages per cycle (overview)</div>
+        <canvas id="chart-trend-phases"></canvas>
+      </div>
+    </div>
+
+    <!-- TAB 6: Forecast -->
+    <div class="tab-panel" id="tab-forecast">
+      <div class="forecast-note">
+        <strong>JS forecast (runs in browser):</strong> Decomposes your glucose history into a long-term trend + cycle-based seasonality, then projects forward. This mirrors what Prophet does. Confidence bands widen with distance. <br>
+        <strong>Full Prophet:</strong> Run <code>python prophet_server.py</code> locally (see instructions below) and click "Connect to Prophet" for exact Prophet output.
+      </div>
+      <div class="prophet-banner">
+        <div class="prophet-banner-text">
+          <strong>Upgrade to full Prophet</strong> — install Python, run <code>pip install flask prophet</code>, save <code>prophet_server.py</code> (download below), then <code>python prophet_server.py</code>
+        </div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <button class="prophet-btn" onclick="downloadProphetServer()">Download prophet_server.py</button>
+          <button class="prophet-btn" onclick="testProphet()">Connect to Prophet</button>
+          <span class="prophet-status" id="prophet-status"></span>
+        </div>
+      </div>
+      <div class="forecast-controls">
+        <div class="ctrl-group">
+          <span class="ctrl-label">Forecast horizon</span>
+          <select id="forecast-days">
+            <option value="30">30 days ahead</option>
+            <option value="60" selected>60 days ahead</option>
+            <option value="90">90 days ahead</option>
+          </select>
+        </div>
+        <div class="ctrl-group">
+          <span class="ctrl-label">History shown</span>
+          <select id="forecast-history">
+            <option value="60">Last 60 days</option>
+            <option value="90" selected>Last 90 days</option>
+            <option value="180">Last 6 months</option>
+          </select>
+        </div>
+        <button class="primary" onclick="renderForecast()">Run forecast</button>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title" id="forecast-title">Glucose forecast — JS decomposition model</div>
+        <canvas id="chart-forecast"></canvas>
+      </div>
+      <div class="insights" id="forecast-insights"></div>
+    </div>
+</main>
+
+<script>
+let cgmData = [], periodData = [], activityData = [];
+let charts = {};
+
+// ── drag/drop ──────────────────────────────────────────────
+function dov(e,id){e.preventDefault();document.getElementById(id).classList.add('drag')}
+function dlv(id){document.getElementById(id).classList.remove('drag')}
+function drop(e,type){e.preventDefault();dlv(type==='cgm'?'cgm-card':type==='period'?'period-card':'activity-card');const f=e.dataTransfer.files[0];if(f){if(type==='cgm')loadCGM(f);else if(type==='period')loadPeriods(f);else loadActivity(f);}}
+
+// ── parsers ───────────────────────────────────────────────
+function loadCGM(file){
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      cgmData=parseCGM(e.target.result);
+      document.getElementById('cgm-card').classList.add('loaded');
+      document.getElementById('cgm-status').textContent=
+        `✓ ${cgmData.length.toLocaleString()} readings · ${fmtD(cgmData[0].ts)} → ${fmtD(cgmData[cgmData.length-1].ts)}`;
+      checkReady();
+    }catch(e){alert('CGM parse error: '+e.message)}
+  };
+  r.readAsText(file);
+}
+
+function parseCGM(text){
+  const lines=text.split(/\r?\n/), out=[];
+  for(let i=2;i<lines.length;i++){
+    let l=lines[i].trim();
+    if(!l)continue;
+    if(l.startsWith('"'))l=l.slice(1);
+    if(l.endsWith('",'))l=l.slice(0,-2);
+    else if(l.endsWith('"'))l=l.slice(0,-1);
+    const p=l.split(',');
+    if(p.length<5)continue;
+    const rt=p[3].trim(), gv=p[4].trim();
+    if((rt==='0'||rt==='1')&&/^\d+$/.test(gv)){
+      const ts=parseLD(p[2].trim());
+      if(ts)out.push({ts,glucose:+gv});
+    }
+  }
+  return out.sort((a,b)=>a.ts-b.ts);
+}
+
+function parseLD(s){
+  const m=s.match(/^(\d{2})-(\d{2})-(\d{4})\s+(\d{2}):(\d{2})$/);
+  if(!m)return null;
+  return new Date(+m[3],+m[2]-1,+m[1],+m[4],+m[5]);
+}
+
+function loadPeriods(file){
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      periodData=parsePeriods(e.target.result);
+      document.getElementById('period-card').classList.add('loaded');
+      document.getElementById('period-status').textContent=
+        `✓ ${periodData.length} cycles · ${fmtD(periodData[0].start)} → ${fmtD(periodData[periodData.length-1].start)}`;
+      checkReady();
+    }catch(e){alert('Period parse error: '+e.message)}
+  };
+  r.readAsText(file);
+}
+
+function parsePeriods(text){
+  const events=[];
+  for(const line of text.split(/\r?\n/)){
+    const p=line.split('\t');
+    if(p.length<2)continue;
+    const d=new Date(p[0].trim());
+    if(!isNaN(d))events.push({date:d,type:p[1].trim()});
+  }
+  const cycles=[];let s=null;
+  for(const ev of events){
+    if(ev.type==='Period Starts')s=ev.date;
+    else if(ev.type==='Period Ends'&&s){cycles.push({start:s,end:ev.date});s=null;}
+  }
+  return cycles;
+}
+
+// ── Activity parser ───────────────────────────────────────
+function loadActivity(file){
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      activityData=parseActivity(e.target.result);
+      document.getElementById('activity-card').classList.add('loaded');
+      const withSteps=activityData.filter(d=>d.steps>0).length;
+      document.getElementById('activity-status').textContent=
+        `✓ ${activityData.length} days · ${withSteps} with step data · ${fmtD(activityData[0].date)} → ${fmtD(activityData[activityData.length-1].date)}`;
+      // If app already showing, re-render activity tab
+      if(cgmData.length>0&&periodData.length>0){renderActivity();renderDailyPattern();}
+    }catch(e){alert('Activity parse error: '+e.message);}
+  };
+  r.readAsText(file);
+}
+
+function parseActivity(text){
+  const lines=text.split(/\r?\n/);
+  if(!lines.length)return[];
+  const headers=lines[0].split(',').map(h=>h.trim());
+  const idx={
+    date:headers.indexOf('Date'),
+    steps:headers.indexOf('Step count'),
+    calories:headers.findIndex(h=>h.startsWith('Calories')),
+    move:headers.indexOf('Move Minutes count'),
+    hr:headers.indexOf('Average heart rate (bpm)'),
+    dist:headers.findIndex(h=>h.startsWith('Distance')),
+  };
+  const out=[];
+  for(let i=1;i<lines.length;i++){
+    const p=lines[i].split(',');
+    if(!p[idx.date]||!p[idx.date].trim())continue;
+    const d=new Date(p[idx.date].trim()+'T12:00:00');
+    if(isNaN(d))continue;
+    out.push({
+      date:d,
+      steps:+(p[idx.steps]||0)||0,
+      calories:+(p[idx.calories]||0)||0,
+      move_minutes:+(p[idx.move]||0)||0,
+      hr:+(p[idx.hr]||0)||0,
+      dist:+(p[idx.dist]||0)||0,
+    });
+  }
+  return out.sort((a,b)=>a.date-b.date);
+}
+
+// ── phase logic ───────────────────────────────────────────
+function getPhase(date, cycles){
+  let cyc=null;
+  for(let i=cycles.length-1;i>=0;i--){if(cycles[i].start<=date){cyc=cycles[i];break;}}
+  if(!cyc)return null;
+  const idx=cycles.indexOf(cyc);
+  const nxt=cycles[idx+1];
+  if(nxt&&date>=nxt.start)return null;
+  const len=nxt?Math.round((nxt.start-cyc.start)/864e5):28;
+  const day=Math.floor((date-cyc.start)/864e5)+1;
+  const menEnd=cyc.end?Math.round((cyc.end-cyc.start)/864e5)+1:5;
+  if(day<=menEnd)return'menstrual';
+  if(day<=Math.round(len*.46))return'follicular';
+  if(day<=Math.round(len*.57))return'ovulatory';
+  return'luteal';
+}
+
+const PC={
+  menstrual: {line:'#c0392b',bg:'rgba(192,57,43,0.13)',label:'Menstrual'},
+  follicular:{line:'#546e7a',bg:'rgba(84,110,122,0.13)',label:'Follicular'},
+  ovulatory: {line:'#2e7d52',bg:'rgba(46,125,82,0.13)',label:'Ovulatory'},
+  luteal:    {line:'#bf6010',bg:'rgba(191,96,16,0.13)',label:'Luteal'},
+};
+const PHASES=['menstrual','follicular','ovulatory','luteal'];
+
+// ── stats helpers ─────────────────────────────────────────
+function mean(a){return a.length?a.reduce((s,v)=>s+v,0)/a.length:0}
+function median(a){if(!a.length)return 0;const s=[...a].sort((x,y)=>x-y);const m=Math.floor(s.length/2);return s.length%2?s[m]:(s[m-1]+s[m])/2}
+function stddev(a){if(a.length<2)return 0;const m=mean(a);return Math.sqrt(a.reduce((s,v)=>s+(v-m)**2,0)/(a.length-1))}
+function percentile(a,p){if(!a.length)return 0;const s=[...a].sort((x,y)=>x-y);const i=(p/100)*(s.length-1);const lo=Math.floor(i);return s[lo]+(s[lo+1]!==undefined?(i-lo)*(s[lo+1]-s[lo]):0)}
+
+function bucketByPhase(data){
+  const b={menstrual:[],follicular:[],ovulatory:[],luteal:[]};
+  for(const r of data){const ph=getPhase(r.ts,periodData);if(ph&&b[ph])b[ph].push(r.glucose);}
+  return b;
+}
+
+function phaseStats(vals){
+  if(!vals.length)return null;
+  const m=mean(vals), sd=stddev(vals);
+  const tir=vals.filter(v=>v>=70&&v<=140).length/vals.length*100;
+  const low=vals.filter(v=>v<70).length/vals.length*100;
+  const hi=vals.filter(v=>v>140).length/vals.length*100;
+  const vhi=vals.filter(v=>v>180).length/vals.length*100;
+  return{mean:m,median:median(vals),sd,cv:sd/m*100,tir,low,hi,vhi,
+    p10:percentile(vals,10),p25:percentile(vals,25),p75:percentile(vals,75),p90:percentile(vals,90),
+    min:Math.min(...vals),max:Math.max(...vals),n:vals.length};
+}
+
+// ── ready ─────────────────────────────────────────────────
+function checkReady(){
+  if(cgmData.length>0&&periodData.length>0){
+    document.getElementById('empty-state').style.display='none';
+    document.getElementById('app').style.display='block';
+    renderAll();
+  }
+}
+
+function getFiltered(){
+  const rv=document.getElementById('range-select').value;
+  if(rv==='all')return cgmData;
+  const cut=new Date(cgmData[cgmData.length-1].ts.getTime()-parseInt(rv)*864e5);
+  return cgmData.filter(r=>r.ts>=cut);
+}
+
+function renderAll(){
+  const data=getFiltered();
+  renderTimeline(data);
+  renderStats(data);
+  renderDist(data);
+  renderDocCurve();
+  renderDailyPattern();
+  renderActivity();
+  renderTrend();
+  renderForecast();
+}
+
+let trendMetric='avg';
+function setTrendMetric(m,btn){
+  trendMetric=m;
+  document.querySelectorAll('.mtbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTrend();
+}
+
+let activitySplit='steps';
+function setActivitySplit(m,btn){
+  activitySplit=m;
+  document.querySelectorAll('#tab-activity .mtbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderActivity();
+}
+
+// ── TAB 1: Timeline ───────────────────────────────────────
+function renderTimeline(data){
+  let disp=data;
+  if(disp.length>2000){const s=Math.ceil(disp.length/2000);disp=disp.filter((_,i)=>i%s===0);}
+  const labels=disp.map(r=>r.ts);
+  const values=disp.map(r=>r.glucose);
+
+  const annots={target:{type:'box',yMin:70,yMax:140,backgroundColor:'rgba(220,215,205,0.3)',borderWidth:0}};
+  let si=0,sp=getPhase(disp[0]?.ts,periodData),ss=0;
+  for(let i=1;i<=disp.length;i++){
+    const p=i<disp.length?getPhase(disp[i].ts,periodData):null;
+    if(p!==sp){if(sp&&PC[sp]){annots['s'+si]={type:'box',xMin:disp[ss].ts,xMax:disp[i-1].ts,backgroundColor:PC[sp].bg,borderWidth:0};si++;}ss=i;sp=p;}
+  }
+
+  destroyChart('timeline');
+  const ctx=document.getElementById('chart-timeline').getContext('2d');
+  charts.timeline=new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets:[{data:values,borderWidth:1.5,tension:.3,fill:false,pointRadius:disp.length>600?0:2.5,pointHoverRadius:4,
+      pointBackgroundColor:disp.map(r=>{const ph=getPhase(r.ts,periodData);return ph?PC[ph].line:'#ccc';}),
+      pointBorderColor:disp.map(r=>{const ph=getPhase(r.ts,periodData);return ph?PC[ph].line:'#ccc';}),
+      segment:{borderColor:c=>{const ph=getPhase(disp[c.p0DataIndex]?.ts,periodData);return ph?PC[ph].line:'#ccc';}}}]},
+    options:{responsive:true,animation:{duration:300},plugins:{legend:{display:false},
+      tooltip:{callbacks:{
+        title:i=>labels[i[0].dataIndex].toLocaleString('en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}),
+        label:i=>{const ph=getPhase(labels[i.dataIndex],periodData);return ` ${i.raw} mg/dL  ·  ${ph||'—'}`;}
+      },backgroundColor:'#1a1814',padding:10,cornerRadius:6,titleFont:{family:'DM Sans',size:11},bodyFont:{family:'DM Sans',size:12}},
+      annotation:{annotations:annots}},
+      scales:{
+        x:{type:'time',adapters:{date:{}},ticks:{maxTicksLimit:8,font:{family:'DM Sans',size:10},color:'#8a8070'},grid:{color:'#f0ece4'}},
+        y:{min:50,max:310,ticks:{font:{family:'DM Sans',size:10},color:'#8a8070',callback:v=>v+' mg/dL'},grid:{color:'#f0ece4'}}
+      }}
+  });
+}
+
+// ── Glycemic variability metrics ──────────────────────────
+
+// CONGA(k): SD of differences G(t) - G(t - k*60 min)
+// k=1 → 1-hour window, standard clinical default
+function computeCONGA(readings, kHours=1) {
+  const windowMs = kHours * 60 * 60 * 1000;
+  const toleranceMs = 10 * 60 * 1000; // ±10 min tolerance
+  const sorted = [...readings].sort((a,b) => a.ts - b.ts);
+  const diffs = [];
+  for (let i = 0; i < sorted.length; i++) {
+    const target = sorted[i].ts.getTime() - windowMs;
+    // Binary search for reading closest to target time
+    let lo = 0, hi = i - 1, best = -1;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      const dt = Math.abs(sorted[mid].ts.getTime() - target);
+      if (dt <= toleranceMs) { best = mid; break; }
+      if (sorted[mid].ts.getTime() < target) lo = mid + 1;
+      else hi = mid - 1;
+    }
+    if (best >= 0) diffs.push(sorted[i].glucose - sorted[best].glucose);
+  }
+  return diffs.length >= 3 ? stddev(diffs) : null;
+}
+
+// MODD: Mean absolute difference between readings at same time ±15 min across consecutive days
+function computeMODD(readings) {
+  const dayMs = 24 * 60 * 60 * 1000;
+  const toleranceMs = 15 * 60 * 1000;
+  const sorted = [...readings].sort((a,b) => a.ts - b.ts);
+  const absDiffs = [];
+  for (let i = 0; i < sorted.length; i++) {
+    const target = sorted[i].ts.getTime() - dayMs;
+    let best = -1, bestDt = Infinity;
+    // Search near expected position
+    for (let j = i - 1; j >= 0 && sorted[i].ts - sorted[j].ts <= dayMs + toleranceMs; j--) {
+      const dt = Math.abs(sorted[j].ts.getTime() - target);
+      if (dt < bestDt && dt <= toleranceMs) { bestDt = dt; best = j; }
+    }
+    if (best >= 0) absDiffs.push(Math.abs(sorted[i].glucose - sorted[best].glucose));
+  }
+  return absDiffs.length >= 3 ? mean(absDiffs) : null;
+}
+
+// MAGE: Mean amplitude of glycemic excursions exceeding 1 SD
+// Algorithm: find alternating peaks and nadirs, keep excursions > 1 SD of the series
+function computeMAGE(readings) {
+  if (readings.length < 10) return null;
+  const vals = readings.map(r => r.glucose);
+  const sd = stddev(vals);
+  if (sd === 0) return null;
+
+  // Smooth with 5-point moving average to reduce noise before peak detection
+  const smoothed = vals.map((_, i) => {
+    const w = vals.slice(Math.max(0, i-2), Math.min(vals.length, i+3));
+    return mean(w);
+  });
+
+  // Find local peaks and nadirs (must differ from neighbours)
+  const peaks = [], nadirs = [];
+  for (let i = 1; i < smoothed.length - 1; i++) {
+    if (smoothed[i] > smoothed[i-1] && smoothed[i] >= smoothed[i+1]) peaks.push(smoothed[i]);
+    if (smoothed[i] < smoothed[i-1] && smoothed[i] <= smoothed[i+1]) nadirs.push(smoothed[i]);
+  }
+
+  // Interleave peaks and nadirs into excursion pairs
+  // MAGE: mean of |peak - nadir| where the excursion > 1 SD
+  const allTurns = [];
+  let pi = 0, ni = 0;
+  // Start with whichever comes first by index position in data
+  const peakIdxs = [], nadirIdxs = [];
+  for (let i = 1; i < smoothed.length - 1; i++) {
+    if (smoothed[i] > smoothed[i-1] && smoothed[i] >= smoothed[i+1]) peakIdxs.push({i, v: smoothed[i], type:'peak'});
+    if (smoothed[i] < smoothed[i-1] && smoothed[i] <= smoothed[i+1]) nadirIdxs.push({i, v: smoothed[i], type:'nadir'});
+  }
+  const turns = [...peakIdxs, ...nadirIdxs].sort((a,b) => a.i - b.i);
+
+  const excursions = [];
+  for (let i = 1; i < turns.length; i++) {
+    if (turns[i].type !== turns[i-1].type) {
+      const amp = Math.abs(turns[i].v - turns[i-1].v);
+      if (amp > sd) excursions.push(amp);
+    }
+  }
+  return excursions.length >= 1 ? mean(excursions) : null;
+}
+
+// ── renderStats ───────────────────────────────────────────
+function renderStats(data){
+  const b=bucketByPhase(data);
+  const phaseReadings={menstrual:[],follicular:[],ovulatory:[],luteal:[]};
+  for(const r of data){const ph=getPhase(r.ts,periodData);if(ph&&phaseReadings[ph])phaseReadings[ph].push(r);}
+
+  // TIR cards
+  const tirGrid=document.getElementById('tir-grid');
+  tirGrid.innerHTML='';
+  for(const ph of PHASES){
+    const s=phaseStats(b[ph]);
+    if(!s){tirGrid.innerHTML+=`<div class="tir-card"><div class="tir-phase" style="color:${PC[ph].line}">${PC[ph].label}</div><div style="font-size:.75rem;color:var(--muted)">No data</div></div>`;continue;}
+    tirGrid.innerHTML+=`
+      <div class="tir-card">
+        <div class="tir-phase" style="color:${PC[ph].line}">${PC[ph].label}</div>
+        <div class="tir-bar-wrap">
+          <div class="tir-bar-label"><span>In range 70–140</span><span>${s.tir.toFixed(1)}%</span></div>
+          <div class="tir-bar-track"><div class="tir-bar-fill" style="width:${s.tir}%;background:#2e7d52"></div></div>
+        </div>
+        <div class="tir-bar-wrap">
+          <div class="tir-bar-label"><span>Above 140</span><span>${s.hi.toFixed(1)}%</span></div>
+          <div class="tir-bar-track"><div class="tir-bar-fill" style="width:${s.hi}%;background:#bf6010"></div></div>
+        </div>
+        <div class="tir-bar-wrap">
+          <div class="tir-bar-label"><span>Below 70</span><span>${s.low.toFixed(1)}%</span></div>
+          <div class="tir-bar-track"><div class="tir-bar-fill" style="width:${s.low*4}%;background:#c0392b"></div></div>
+        </div>
+      </div>`;
+  }
+
+  // Auto insights
+  const stats=PHASES.map(ph=>({ph,s:phaseStats(b[ph])})).filter(x=>x.s);
+  const ig=document.getElementById('insights-grid');
+  ig.innerHTML='';
+  if(stats.length>=2){
+    const hi=stats.reduce((a,b)=>b.s.mean>a.s.mean?b:a);
+    const lo=stats.reduce((a,b)=>b.s.mean<a.s.mean?b:a);
+    ig.innerHTML+=`<div class="insight-card">
+      <div class="insight-tag" style="color:${PC[hi.ph].line}">Highest glucose phase</div>
+      <div class="insight-text">Your <strong>${PC[hi.ph].label.toLowerCase()} phase</strong> averages <strong>${hi.s.mean.toFixed(1)} mg/dL</strong> — ${(hi.s.mean-lo.s.mean).toFixed(1)} mg/dL above your ${PC[lo.ph].label.toLowerCase()} phase.</div>
+    </div>`;
+    const mv=stats.reduce((a,b)=>b.s.cv>a.s.cv?b:a);
+    const lv=stats.reduce((a,b)=>b.s.cv<a.s.cv?b:a);
+    ig.innerHTML+=`<div class="insight-card">
+      <div class="insight-tag" style="color:${PC[mv.ph].line}">Most variable phase</div>
+      <div class="insight-text">Your <strong>${PC[mv.ph].label.toLowerCase()} phase</strong> is most variable (CV ${mv.s.cv.toFixed(1)}%). <strong>${PC[lv.ph].label}</strong> is most stable (CV ${lv.s.cv.toFixed(1)}%).</div>
+    </div>`;
+    const bt=stats.reduce((a,b)=>b.s.tir>a.s.tir?b:a);
+    const wt=stats.reduce((a,b)=>b.s.tir<a.s.tir?b:a);
+    ig.innerHTML+=`<div class="insight-card">
+      <div class="insight-tag" style="color:${PC[bt.ph].line}">Best time in range</div>
+      <div class="insight-text"><strong>${PC[bt.ph].label}</strong> keeps you in range most often (<strong>${bt.s.tir.toFixed(1)}%</strong>). <strong>${PC[wt.ph].label}</strong> has the most time out of range (${(100-wt.s.tir).toFixed(1)}%).</div>
+    </div>`;
+    const hs=stats.reduce((a,b)=>b.s.vhi>a.s.vhi?b:a);
+    ig.innerHTML+=`<div class="insight-card">
+      <div class="insight-tag" style="color:${PC[hs.ph].line}">Most spikes above 180</div>
+      <div class="insight-text">Readings above 180 mg/dL are most frequent in your <strong>${PC[hs.ph].label.toLowerCase()} phase</strong> at <strong>${hs.s.vhi.toFixed(1)}%</strong> of readings.</div>
+    </div>`;
+  }
+
+  // ── CONGA / MODD / MAGE ──────────────────────────────
+  const vm={};
+  for(const ph of PHASES){
+    const r=phaseReadings[ph]; const s=phaseStats(b[ph]);
+    vm[ph]={
+      conga: r.length>=20?computeCONGA(r,1):null,
+      modd:  r.length>=20?computeMODD(r):null,
+      mage:  r.length>=20?computeMAGE(r):null,
+      sd:    s?s.sd:null, cv:s?s.cv:null,
+    };
+  }
+
+  destroyChart('variability');
+  const vctx=document.getElementById('chart-variability').getContext('2d');
+  charts.variability=new Chart(vctx,{
+    type:'bar',
+    data:{labels:PHASES.map(ph=>PC[ph].label),datasets:[
+      {label:'CONGA(1) — 1-hour excursion SD',data:PHASES.map(ph=>vm[ph].conga!=null?+vm[ph].conga.toFixed(1):null),backgroundColor:PHASES.map(ph=>PC[ph].line+'cc'),borderRadius:4},
+      {label:'MODD — day-to-day difference',data:PHASES.map(ph=>vm[ph].modd!=null?+vm[ph].modd.toFixed(1):null),backgroundColor:PHASES.map(ph=>PC[ph].bg),borderRadius:4,borderWidth:1.5,borderColor:PHASES.map(ph=>PC[ph].line+'88')},
+      {label:'MAGE — mean excursion amplitude',data:PHASES.map(ph=>vm[ph].mage!=null?+vm[ph].mage.toFixed(1):null),backgroundColor:PHASES.map(ph=>PC[ph].line+'44'),borderRadius:4,borderWidth:1.5,borderColor:PHASES.map(ph=>PC[ph].line)},
+    ]},
+    options:{responsive:true,animation:{duration:300},
+      plugins:{legend:{labels:{font:{family:'DM Sans',size:11}}},
+        tooltip:{mode:'index',intersect:false,callbacks:{
+          title:i=>PC[PHASES[i[0].dataIndex]].label+' phase',
+          label:i=>{const ph=PHASES[i[0].dataIndex];const v=[vm[ph].conga,vm[ph].modd,vm[ph].mage][i.datasetIndex];const n=['CONGA(1)','MODD','MAGE'][i.datasetIndex];return` ${n}: ${v!=null?v.toFixed(1)+' mg/dL':'insufficient data'}`;}
+        },backgroundColor:'#1a1814',padding:10,cornerRadius:6,titleFont:{family:'DM Sans',size:11},bodyFont:{family:'DM Sans',size:12}}},
+      scales:{x:{ticks:{font:{family:'DM Sans',size:11},color:'#1a1814'},grid:{display:false}},y:{ticks:{font:{family:'DM Sans',size:10},color:'#8a8070',callback:v=>v+' mg/dL'},grid:{color:'#f0ece4'}}}}
+  });
+
+  function vc(metric,val){
+    if(val==null)return'';
+    if(metric==='conga')return val<18?'metric-good':val<35?'metric-warn':'metric-bad';
+    if(metric==='modd') return val<20?'metric-good':val<40?'metric-warn':'metric-bad';
+    if(metric==='mage') return val<30?'metric-good':val<70?'metric-warn':'metric-bad';
+    if(metric==='cv')   return val<20?'metric-good':val<30?'metric-warn':'metric-bad';
+    return'';
+  }
+  function vi(v){
+    const sc=[];
+    if(v.conga!=null)sc.push(v.conga<18?1:v.conga<25?2:v.conga<35?3:4);
+    if(v.modd!=null) sc.push(v.modd<20?1:v.modd<30?2:v.modd<40?3:4);
+    if(v.mage!=null) sc.push(v.mage<30?1:v.mage<50?2:v.mage<70?3:4);
+    if(!sc.length)return'Insufficient data';
+    const a=sc.reduce((x,y)=>x+y,0)/sc.length;
+    if(a<=1.5)return'<span style="color:#2e7d52;font-weight:500">Very stable</span>';
+    if(a<=2.2)return'<span style="color:#546e7a">Moderate</span>';
+    if(a<=3.0)return'<span style="color:#bf6010">Elevated</span>';
+    return'<span style="color:#c0392b;font-weight:500">High variability</span>';
+  }
+
+  const vtbody=document.getElementById('variability-tbody');
+  vtbody.innerHTML='';
+  for(const ph of PHASES){
+    vtbody.innerHTML+=`<tr>
+      <td><span class="phase-pill"><span class="phase-swatch" style="background:${PC[ph].line}"></span>${PC[ph].label}</span></td>
+      <td class="${vc('conga',vm[ph].conga)}">${vm[ph].conga!=null?vm[ph].conga.toFixed(1):'—'}</td>
+      <td class="${vc('modd',vm[ph].modd)}">${vm[ph].modd!=null?vm[ph].modd.toFixed(1):'—'}</td>
+      <td class="${vc('mage',vm[ph].mage)}">${vm[ph].mage!=null?vm[ph].mage.toFixed(1):'—'}</td>
+      <td class="${vc('cv',vm[ph].cv)}">${vm[ph].sd!=null?vm[ph].sd.toFixed(1):'—'}</td>
+      <td class="${vc('cv',vm[ph].cv)}">${vm[ph].cv!=null?vm[ph].cv.toFixed(1)+'%':'—'}</td>
+      <td>${vi(vm[ph])}</td>
+    </tr>`;
+  }
+
+  // Main comprehensive stats table
+  const tbody=document.getElementById('stats-tbody');
+  tbody.innerHTML='';
+  for(const ph of PHASES){
+    const s=phaseStats(b[ph]);
+    if(!s){tbody.innerHTML+=`<tr><td><span class="phase-pill"><span class="phase-swatch" style="background:${PC[ph].line}"></span>${PC[ph].label}</span></td><td colspan="9" style="color:var(--muted)">No data in range</td></tr>`;continue;}
+    const tirClass=s.tir>=70?'metric-good':s.tir>=50?'metric-warn':'metric-bad';
+    const sdClass=s.cv<=20?'metric-good':s.cv<=30?'metric-warn':'metric-bad';
+    tbody.innerHTML+=`<tr>
+      <td><span class="phase-pill"><span class="phase-swatch" style="background:${PC[ph].line}"></span>${PC[ph].label}</span></td>
+      <td>${s.mean.toFixed(1)}</td><td>${s.median.toFixed(1)}</td>
+      <td class="${sdClass}">${s.sd.toFixed(1)}</td>
+      <td class="${sdClass}">${s.cv.toFixed(1)}%</td>
+      <td class="${tirClass}">${s.tir.toFixed(1)}%</td>
+      <td class="${s.low>5?'metric-bad':''}">${s.low.toFixed(1)}%</td>
+      <td class="${s.hi>25?'metric-warn':''}">${s.hi.toFixed(1)}%</td>
+      <td class="${s.vhi>10?'metric-bad':s.vhi>5?'metric-warn':''}">${s.vhi.toFixed(1)}%</td>
+      <td style="color:var(--muted)">${s.n.toLocaleString()}</td>
+    </tr>`;
+  }
+}
+
+// ── TAB 3: Distribution ───────────────────────────────────
+function renderDist(data){
+  const b=bucketByPhase(data);
+  const labels=PHASES.map(ph=>PC[ph].label);
+  const colors=PHASES.map(ph=>PC[ph].line);
+  const colorsA=PHASES.map(ph=>PC[ph].bg);
+
+  // Box-plot style: show p10, p25, median, p75, p90 as stacked bar ranges
+  const p10=PHASES.map(ph=>{const s=phaseStats(b[ph]);return s?s.p10:0});
+  const p25=PHASES.map(ph=>{const s=phaseStats(b[ph]);return s?s.p25:0});
+  const med=PHASES.map(ph=>{const s=phaseStats(b[ph]);return s?s.median:0});
+  const p75=PHASES.map(ph=>{const s=phaseStats(b[ph]);return s?s.p75:0});
+  const p90=PHASES.map(ph=>{const s=phaseStats(b[ph]);return s?s.p90:0});
+  const avgs=PHASES.map(ph=>{const s=phaseStats(b[ph]);return s?s.mean:0});
+
+  destroyChart('dist');
+  const ctx=document.getElementById('chart-dist').getContext('2d');
+  charts.dist=new Chart(ctx,{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'p10 base',data:p10,backgroundColor:'transparent',borderWidth:0},
+      {label:'p10–p25 (lower tail)',data:PHASES.map((ph,i)=>p25[i]-p10[i]),backgroundColor:colorsA,borderWidth:0,borderRadius:3},
+      {label:'p25–median (lower IQR)',data:PHASES.map((ph,i)=>med[i]-p25[i]),backgroundColor:PHASES.map(ph=>PC[ph].line+'55'),borderWidth:0},
+      {label:'median–p75 (upper IQR)',data:PHASES.map((ph,i)=>p75[i]-med[i]),backgroundColor:colors,borderWidth:0},
+      {label:'p75–p90 (upper tail)',data:PHASES.map((ph,i)=>p90[i]-p75[i]),backgroundColor:colorsA,borderWidth:0,borderRadius:{topLeft:3,topRight:3}},
+    ]},
+    options:{responsive:true,animation:{duration:300},
+      plugins:{legend:{display:true,labels:{font:{family:'DM Sans',size:11},filter:i=>i.datasetIndex>0}},
+        tooltip:{callbacks:{
+          label:i=>{
+            const ph=PHASES[i.dataIndex];const s=phaseStats(b[ph]);if(!s)return'';
+            if(i.datasetIndex===1)return`p10–p25: ${s.p10.toFixed(0)}–${s.p25.toFixed(0)} mg/dL`;
+            if(i.datasetIndex===2)return`p25–median: ${s.p25.toFixed(0)}–${s.median.toFixed(0)} mg/dL`;
+            if(i.datasetIndex===3)return`median–p75: ${s.median.toFixed(0)}–${s.p75.toFixed(0)} mg/dL`;
+            if(i.datasetIndex===4)return`p75–p90: ${s.p75.toFixed(0)}–${s.p90.toFixed(0)} mg/dL`;
+            return'';
+          },
+          afterBody:i=>{const ph=PHASES[i[0].dataIndex];const s=phaseStats(b[ph]);if(!s)return[];return[`Mean: ${s.mean.toFixed(1)} mg/dL`,`Std dev: ±${s.sd.toFixed(1)}`];}
+        },backgroundColor:'#1a1814',padding:10,cornerRadius:6,titleFont:{family:'DM Sans',size:11},bodyFont:{family:'DM Sans',size:12}}},
+      scales:{
+        x:{stacked:true,ticks:{font:{family:'DM Sans',size:12},color:'#1a1814'},grid:{display:false}},
+        y:{stacked:true,min:50,ticks:{font:{family:'DM Sans',size:10},color:'#8a8070',callback:v=>v+' mg/dL'},grid:{color:'#f0ece4'}}
+      }}
+  });
+
+  // TIR grouped bar
+  const tirData=PHASES.map(ph=>{const s=phaseStats(b[ph]);return s?+s.tir.toFixed(1):0});
+  const lowData=PHASES.map(ph=>{const s=phaseStats(b[ph]);return s?+s.low.toFixed(1):0});
+  const hiData=PHASES.map(ph=>{const s=phaseStats(b[ph]);return s?+s.hi.toFixed(1):0});
+  const vhiData=PHASES.map(ph=>{const s=phaseStats(b[ph]);return s?+s.vhi.toFixed(1):0});
+
+  destroyChart('tir');
+  const ctx2=document.getElementById('chart-tir').getContext('2d');
+  charts.tir=new Chart(ctx2,{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'In range 70–140',data:tirData,backgroundColor:'rgba(46,125,82,0.75)',borderRadius:4},
+      {label:'Above 140',data:hiData,backgroundColor:'rgba(191,96,16,0.75)',borderRadius:4},
+      {label:'Above 180',data:vhiData,backgroundColor:'rgba(192,57,43,0.6)',borderRadius:4},
+      {label:'Below 70',data:lowData,backgroundColor:'rgba(84,110,122,0.6)',borderRadius:4},
+    ]},
+    options:{responsive:true,animation:{duration:300},
+      plugins:{legend:{labels:{font:{family:'DM Sans',size:11}}},
+        tooltip:{backgroundColor:'#1a1814',padding:10,cornerRadius:6,titleFont:{family:'DM Sans',size:11},bodyFont:{family:'DM Sans',size:12}}},
+      scales:{
+        x:{ticks:{font:{family:'DM Sans',size:12},color:'#1a1814'},grid:{display:false}},
+        y:{max:100,ticks:{font:{family:'DM Sans',size:10},color:'#8a8070',callback:v=>v+'%'},grid:{color:'#f0ece4'}}
+      }}
+  });
+}
+
+// ── TAB 4: Day-of-cycle curve ─────────────────────────────
+function renderDocCurve(){
+  // For each day of cycle (1–35), collect all glucose readings across all cycles
+  // Only use cycles where we have CGM data
+  const MAX_DAY=40;
+  const dayBuckets=Array.from({length:MAX_DAY+1},()=>[]);
+
+  for(const r of cgmData){
+    let cyc=null;
+    for(let i=periodData.length-1;i>=0;i--){if(periodData[i].start<=r.ts){cyc=periodData[i];break;}}
+    if(!cyc)continue;
+    const idx=periodData.indexOf(cyc);
+    const nxt=periodData[idx+1];
+    if(nxt&&r.ts>=nxt.start)continue;
+    const day=Math.floor((r.ts-cyc.start)/864e5)+1;
+    if(day>=1&&day<=MAX_DAY)dayBuckets[day].push(r.glucose);
+  }
+
+  // Only show days with at least 3 readings (noise filter)
+  const validDays=[], avgLine=[], p25Line=[], p75Line=[], phaseColors=[];
+
+  // Compute average cycle length from period data
+  const cycleLens=[];
+  for(let i=0;i<periodData.length-1;i++)cycleLens.push(Math.round((periodData[i+1].start-periodData[i].start)/864e5));
+  const avgCycleLen=Math.round(cycleLens.reduce((a,b)=>a+b,0)/cycleLens.length)||28;
+  const avgMenEnd=Math.round(periodData.filter(c=>c.end).map(c=>Math.round((c.end-c.start)/864e5)+1).reduce((a,b)=>a+b,0)/periodData.filter(c=>c.end).length)||5;
+
+  for(let d=1;d<=Math.min(MAX_DAY,avgCycleLen+3);d++){
+    if(dayBuckets[d].length<3)continue;
+    validDays.push(d);
+    avgLine.push(+mean(dayBuckets[d]).toFixed(1));
+    p25Line.push(+percentile(dayBuckets[d],25).toFixed(1));
+    p75Line.push(+percentile(dayBuckets[d],75).toFixed(1));
+    // phase for this day
+    let ph;
+    if(d<=avgMenEnd)ph='menstrual';
+    else if(d<=Math.round(avgCycleLen*.46))ph='follicular';
+    else if(d<=Math.round(avgCycleLen*.57))ph='ovulatory';
+    else ph='luteal';
+    phaseColors.push(PC[ph].line);
+  }
+
+  // IQR fill dataset: base = p25, fill to p75
+  const iqrBase=p25Line;
+  const iqrHeight=validDays.map((_,i)=>p75Line[i]-p25Line[i]);
+
+  destroyChart('doc');
+  const ctx=document.getElementById('chart-doc').getContext('2d');
+  charts.doc=new Chart(ctx,{
+    type:'bar',
+    data:{labels:validDays,datasets:[
+      {type:'bar',label:'IQR base (hidden)',data:iqrBase,backgroundColor:'transparent',borderWidth:0,barPercentage:.9,categoryPercentage:.9},
+      {type:'bar',label:'25th–75th percentile',data:iqrHeight,backgroundColor:validDays.map((_,i)=>phaseColors[i]+'30'),borderWidth:0,barPercentage:.9,categoryPercentage:.9},
+      {type:'line',label:'Average glucose',data:avgLine,borderWidth:2.5,tension:.4,fill:false,pointRadius:0,pointHoverRadius:5,
+        segment:{borderColor:c=>phaseColors[c.p0DataIndex]||'#aaa'},
+        pointBackgroundColor:phaseColors,pointBorderColor:phaseColors},
+    ]},
+    options:{responsive:true,animation:{duration:400},
+      plugins:{legend:{labels:{font:{family:'DM Sans',size:11},filter:i=>i.datasetIndex>0}},
+        tooltip:{mode:'index',intersect:false,callbacks:{
+          title:i=>`Day ${validDays[i[0].dataIndex]} of cycle`,
+          label:i=>{
+            if(i.datasetIndex===0)return null;
+            if(i.datasetIndex===1)return`IQR: ${p25Line[i.dataIndex].toFixed(0)}–${p75Line[i.dataIndex].toFixed(0)} mg/dL (${dayBuckets[validDays[i.dataIndex]]?.length||0} readings)`;
+            return`Average: ${i.raw} mg/dL`;
+          },
+          filter:i=>i.datasetIndex>0
+        },backgroundColor:'#1a1814',padding:10,cornerRadius:6,titleFont:{family:'DM Sans',size:11},bodyFont:{family:'DM Sans',size:12}},
+        annotation:{annotations:{
+          target:{type:'box',yMin:70,yMax:140,backgroundColor:'rgba(220,215,205,0.3)',borderWidth:0},
+          // Phase boundary lines
+          p1:{type:'line',xMin:avgMenEnd+.5,xMax:avgMenEnd+.5,borderColor:'#c0392b44',borderWidth:1.5,borderDash:[4,4],
+            label:{content:'Follicular →',display:true,position:'start',font:{family:'DM Sans',size:10},color:'#c0392b',backgroundColor:'transparent',yAdjust:-12}},
+          p2:{type:'line',xMin:Math.round(avgCycleLen*.46)+.5,xMax:Math.round(avgCycleLen*.46)+.5,borderColor:'#546e7a44',borderWidth:1.5,borderDash:[4,4],
+            label:{content:'Ovulatory →',display:true,position:'start',font:{family:'DM Sans',size:10},color:'#546e7a',backgroundColor:'transparent',yAdjust:-12}},
+          p3:{type:'line',xMin:Math.round(avgCycleLen*.57)+.5,xMax:Math.round(avgCycleLen*.57)+.5,borderColor:'#2e7d5244',borderWidth:1.5,borderDash:[4,4],
+            label:{content:'Luteal →',display:true,position:'start',font:{family:'DM Sans',size:10},color:'#2e7d52',backgroundColor:'transparent',yAdjust:-12}},
+        }}},
+      scales:{
+        x:{stacked:true,title:{display:true,text:'Day of cycle',font:{family:'DM Sans',size:11},color:'#8a8070'},ticks:{font:{family:'DM Sans',size:10},color:'#8a8070'},grid:{color:'#f0ece4'}},
+        y:{min:60,title:{display:true,text:'Glucose mg/dL',font:{family:'DM Sans',size:11},color:'#8a8070'},ticks:{font:{family:'DM Sans',size:10},color:'#8a8070'},grid:{color:'#f0ece4'}}
+      }}
+  });
+}
+
+// ── TAB 5: Daily pattern (hourly + 6am fasting) ──────────
+function renderDailyPattern(){
+  // Build hourly buckets per phase: hour 0-23 → readings
+  const hourly={menstrual:{},follicular:{},ovulatory:{},luteal:{}};
+  for(let h=0;h<24;h++)PHASES.forEach(ph=>{hourly[ph][h]=[];});
+
+  for(const r of cgmData){
+    const ph=getPhase(r.ts,periodData);
+    if(!ph)continue;
+    const h=r.ts.getHours();
+    hourly[ph][h].push(r.glucose);
+  }
+
+  const hours=Array.from({length:24},(_,i)=>i);
+  const hourLabels=hours.map(h=>`${String(h).padStart(2,'0')}:00`);
+
+  // Fasting cards (6am ± 30min window → hour 6)
+  const fastingHour=6;
+  const fc=document.getElementById('fasting-cards');
+  fc.innerHTML='';
+  for(const ph of PHASES){
+    const vals=hourly[ph][fastingHour];
+    const allVals=Object.values(hourly[ph]).flat();
+    if(!vals.length){fc.innerHTML+=`<div class="tir-card"><div class="tir-phase" style="color:${PC[ph].line}">${PC[ph].label}</div><div style="font-size:.75rem;color:var(--muted)">No 6 AM data</div></div>`;continue;}
+    const avg=mean(vals), sd=stddev(vals);
+    const dayAvg=allVals.length?mean(allVals):0;
+    const diff=avg-dayAvg;
+    const diffTxt=(diff>=0?'+':'')+diff.toFixed(1)+' vs day avg';
+    fc.innerHTML+=`
+      <div class="tir-card">
+        <div class="tir-phase" style="color:${PC[ph].line}">${PC[ph].label}</div>
+        <div style="font-family:'DM Serif Display',serif;font-size:2rem;line-height:1;margin:.35rem 0">${avg.toFixed(0)}</div>
+        <div style="font-size:.72rem;color:var(--muted)">mg/dL at 6 AM · ${vals.length} readings</div>
+        <div style="font-size:.72rem;margin-top:.3rem;color:${diff>5?'#c0392b':diff<-5?'#2e7d52':'var(--muted)'}">${diffTxt}</div>
+        <div class="tir-bar-wrap" style="margin-top:.6rem">
+          <div class="tir-bar-label"><span>Std dev</span><span>±${sd.toFixed(1)}</span></div>
+          <div class="tir-bar-track"><div class="tir-bar-fill" style="width:${Math.min(100,sd/50*100)}%;background:${PC[ph].line}88"></div></div>
+        </div>
+      </div>`;
+  }
+
+  // Hourly overlay chart — all 4 phases on same axes
+  destroyChart('hourly-overlay');
+  const ctx=document.getElementById('chart-hourly-overlay').getContext('2d');
+  charts['hourly-overlay']=new Chart(ctx,{
+    type:'line',
+    data:{labels:hourLabels,datasets:PHASES.map(ph=>({
+      label:PC[ph].label,
+      data:hours.map(h=>hourly[ph][h].length>=3?+mean(hourly[ph][h]).toFixed(1):null),
+      borderColor:PC[ph].line,backgroundColor:PC[ph].bg,borderWidth:2.5,
+      pointRadius:h=>h===fastingHour?7:3,
+      pointBackgroundColor:hours.map(h=>h===fastingHour?PC[ph].line:'transparent'),
+      pointBorderColor:hours.map(h=>h===fastingHour?PC[ph].line:PC[ph].line+'88'),
+      tension:.4,fill:false,spanGaps:true,
+    }))},
+    options:{responsive:true,animation:{duration:300},
+      plugins:{legend:{labels:{font:{family:'DM Sans',size:11}}},
+        tooltip:{mode:'index',intersect:false,callbacks:{
+          title:i=>hourLabels[i[0].dataIndex]+(i[0].dataIndex===fastingHour?' ★ Fasting window':''),
+          label:i=>` ${i.dataset.label}: ${i.raw!=null?i.raw+' mg/dL':'no data'}`
+        },backgroundColor:'#1a1814',padding:10,cornerRadius:6,titleFont:{family:'DM Sans',size:11},bodyFont:{family:'DM Sans',size:12}},
+        annotation:{annotations:{
+          fasting:{type:'line',xMin:fastingHour,xMax:fastingHour,borderColor:'#8a807088',borderWidth:1.5,borderDash:[4,3],
+            label:{content:'6 AM',display:true,position:'start',font:{family:'DM Sans',size:10},color:'#8a8070',backgroundColor:'transparent'}},
+          target:{type:'box',yMin:70,yMax:140,backgroundColor:'rgba(220,215,205,0.25)',borderWidth:0},
+        }}},
+      scales:{
+        x:{ticks:{font:{family:'DM Sans',size:10},color:'#8a8070',maxTicksLimit:12},grid:{color:'#f0ece4'}},
+        y:{min:60,ticks:{font:{family:'DM Sans',size:10},color:'#8a8070',callback:v=>v+' mg/dL'},grid:{color:'#f0ece4'}}
+      }}
+  });
+
+  // Fasting bar chart (per phase 6am averages)
+  destroyChart('fasting-bar');
+  const ctx2=document.getElementById('chart-fasting-bar').getContext('2d');
+  charts['fasting-bar']=new Chart(ctx2,{
+    type:'bar',
+    data:{
+      labels:PHASES.map(ph=>PC[ph].label),
+      datasets:[
+        {label:'6 AM avg glucose',data:PHASES.map(ph=>hourly[ph][fastingHour].length?+mean(hourly[ph][fastingHour]).toFixed(1):null),
+          backgroundColor:PHASES.map(ph=>PC[ph].line+'cc'),borderRadius:6,},
+        {label:'Day average',data:PHASES.map(ph=>{const v=Object.values(hourly[ph]).flat();return v.length?+mean(v).toFixed(1):null;}),
+          backgroundColor:PHASES.map(ph=>PC[ph].bg),borderRadius:6,borderWidth:1.5,borderColor:PHASES.map(ph=>PC[ph].line+'66')},
+      ]
+    },
+    options:{responsive:true,animation:{duration:300},
+      plugins:{legend:{labels:{font:{family:'DM Sans',size:11}}},
+        annotation:{annotations:{target:{type:'box',yMin:70,yMax:100,backgroundColor:'rgba(46,125,82,0.08)',borderWidth:0}}}},
+      scales:{
+        x:{ticks:{font:{family:'DM Sans',size:11},color:'#1a1814'},grid:{display:false}},
+        y:{min:60,ticks:{font:{family:'DM Sans',size:10},color:'#8a8070',callback:v=>v+' mg/dL'},grid:{color:'#f0ece4'}}
+      }}
+  });
+
+  // Hourly SD chart (variability by hour and phase)
+  destroyChart('hourly-sd');
+  const ctx3=document.getElementById('chart-hourly-sd').getContext('2d');
+  charts['hourly-sd']=new Chart(ctx3,{
+    type:'line',
+    data:{labels:hourLabels,datasets:PHASES.map(ph=>({
+      label:PC[ph].label,
+      data:hours.map(h=>hourly[ph][h].length>=5?+stddev(hourly[ph][h]).toFixed(1):null),
+      borderColor:PC[ph].line,borderWidth:2,pointRadius:0,tension:.4,fill:false,spanGaps:true,
+    }))},
+    options:{responsive:true,animation:{duration:300},
+      plugins:{legend:{labels:{font:{family:'DM Sans',size:11}}},
+        tooltip:{mode:'index',intersect:false,callbacks:{label:i=>` ${i.dataset.label}: ±${i.raw!=null?i.raw+' mg/dL':'—'}`},
+          backgroundColor:'#1a1814',padding:10,cornerRadius:6,titleFont:{family:'DM Sans',size:11},bodyFont:{family:'DM Sans',size:12}}},
+      scales:{
+        x:{ticks:{font:{family:'DM Sans',size:10},color:'#8a8070',maxTicksLimit:12},grid:{color:'#f0ece4'}},
+        y:{min:0,ticks:{font:{family:'DM Sans',size:10},color:'#8a8070',callback:v=>'±'+v},grid:{color:'#f0ece4'}}
+      }}
+  });
+}
+
+// ── TAB 6: Activity influence ─────────────────────────────
+function renderActivity(){
+  const hasActivity=activityData.length>0;
+  document.getElementById('activity-upload-prompt').style.display=hasActivity?'none':'block';
+  document.getElementById('activity-content').style.display=hasActivity?'block':'none';
+  if(!hasActivity||!cgmData.length||!periodData.length)return;
+
+  const splitMeta={
+    steps:{label:'Step count',unit:'steps',threshold:7500,hiLabel:'High steps (≥7,500)',loLabel:'Low steps (<7,500)'},
+    calories:{label:'Active calories',unit:'kcal',threshold:500,hiLabel:'High calories (≥500)',loLabel:'Low calories (<500)'},
+    move_minutes:{label:'Move minutes',unit:'min',threshold:30,hiLabel:'Active (≥30 min)',loLabel:'Low activity (<30 min)'},
+  };
+  const meta=splitMeta[activitySplit];
+
+  // Build activity lookup by date string
+  const actMap={};
+  for(const a of activityData)actMap[a.date.toISOString().slice(0,10)]=a;
+
+  // For each CGM reading, attach activity from that day
+  const annotated=cgmData.map(r=>{
+    const key=r.ts.toISOString().slice(0,10);
+    const act=actMap[key];
+    return{...r,act:act||null,phase:getPhase(r.ts,periodData)};
+  }).filter(r=>r.phase&&r.act);
+
+  // Auto-threshold: use median of non-zero values
+  const vals=activityData.map(a=>a[activitySplit]).filter(v=>v>0);
+  const autoThreshold=vals.length?+percentile(vals,50).toFixed(0):meta.threshold;
+
+  const hiReadings=annotated.filter(r=>r.act[activitySplit]>=autoThreshold);
+  const loReadings=annotated.filter(r=>r.act[activitySplit]>0&&r.act[activitySplit]<autoThreshold);
+
+  // Per-phase hi vs lo stats
+  const phaseHi={}, phaseLo={};
+  for(const ph of PHASES){phaseHi[ph]=hiReadings.filter(r=>r.phase===ph).map(r=>r.glucose);phaseLo[ph]=loReadings.filter(r=>r.phase===ph).map(r=>r.glucose);}
+
+  // Summary cards
+  const hiDays=new Set(hiReadings.map(r=>r.ts.toISOString().slice(0,10))).size;
+  const loDays=new Set(loReadings.map(r=>r.ts.toISOString().slice(0,10))).size;
+  const hiAvg=hiReadings.length?mean(hiReadings.map(r=>r.glucose)):0;
+  const loAvg=loReadings.length?mean(loReadings.map(r=>r.glucose)):0;
+  const diff=loAvg-hiAvg;
+  document.getElementById('activity-summary').innerHTML=`
+    <div class="trend-stat"><div class="trend-stat-label">High activity days</div><div class="trend-stat-val">${hiDays}</div><div class="trend-stat-sub">≥${autoThreshold.toLocaleString()} ${meta.unit}</div></div>
+    <div class="trend-stat"><div class="trend-stat-label">Low activity days</div><div class="trend-stat-val">${loDays}</div><div class="trend-stat-sub">&lt;${autoThreshold.toLocaleString()} ${meta.unit}</div></div>
+    <div class="trend-stat"><div class="trend-stat-label">Glucose difference</div><div class="trend-stat-val ${diff>5?'trend-dir-dn':diff<-5?'trend-dir-up':'trend-dir-flat'}">${diff>=0?'+':''}${diff.toFixed(1)} mg/dL</div><div class="trend-stat-sub">${diff>3?'lower on active days':diff<-3?'higher on active days':'minimal difference'}</div></div>`;
+
+  document.getElementById('activity-chart-title').textContent=`Avg glucose: ${meta.hiLabel} vs ${meta.loLabel} — by phase`;
+
+  // Grouped bar: hi vs lo avg per phase
+  destroyChart('activity-compare');
+  const ctx=document.getElementById('chart-activity-compare').getContext('2d');
+  charts['activity-compare']=new Chart(ctx,{
+    type:'bar',
+    data:{labels:PHASES.map(ph=>PC[ph].label),datasets:[
+      {label:meta.hiLabel,data:PHASES.map(ph=>phaseHi[ph].length?+mean(phaseHi[ph]).toFixed(1):null),backgroundColor:PHASES.map(ph=>PC[ph].line+'cc'),borderRadius:5},
+      {label:meta.loLabel,data:PHASES.map(ph=>phaseLo[ph].length?+mean(phaseLo[ph]).toFixed(1):null),backgroundColor:PHASES.map(ph=>PC[ph].bg),borderRadius:5,borderWidth:1.5,borderColor:PHASES.map(ph=>PC[ph].line+'66')},
+    ]},
+    options:{responsive:true,animation:{duration:300},
+      plugins:{legend:{labels:{font:{family:'DM Sans',size:11}}},
+        tooltip:{callbacks:{afterBody:i=>{const ph=PHASES[i[0].dataIndex];const ds=i[0].datasetIndex===0?phaseHi[ph]:phaseLo[ph];return[`n=${ds.length} readings`,`Std dev: ±${stddev(ds).toFixed(1)}`];}},
+          backgroundColor:'#1a1814',padding:10,cornerRadius:6,titleFont:{family:'DM Sans',size:11},bodyFont:{family:'DM Sans',size:12}}},
+      scales:{x:{ticks:{font:{family:'DM Sans',size:11},color:'#1a1814'},grid:{display:false}},
+              y:{min:60,ticks:{font:{family:'DM Sans',size:10},color:'#8a8070',callback:v=>v+' mg/dL'},grid:{color:'#f0ece4'}}}
+    }
+  });
+
+  // TIR hi vs lo
+  destroyChart('activity-tir');
+  const ctx2=document.getElementById('chart-activity-tir').getContext('2d');
+  charts['activity-tir']=new Chart(ctx2,{
+    type:'bar',
+    data:{labels:PHASES.map(ph=>PC[ph].label),datasets:[
+      {label:meta.hiLabel,data:PHASES.map(ph=>{const v=phaseHi[ph];return v.length?+(v.filter(x=>x>=70&&x<=140).length/v.length*100).toFixed(1):null;}),backgroundColor:'rgba(46,125,82,0.8)',borderRadius:5},
+      {label:meta.loLabel,data:PHASES.map(ph=>{const v=phaseLo[ph];return v.length?+(v.filter(x=>x>=70&&x<=140).length/v.length*100).toFixed(1):null;}),backgroundColor:'rgba(46,125,82,0.25)',borderRadius:5,borderWidth:1.5,borderColor:'#2e7d5266'},
+    ]},
+    options:{responsive:true,animation:{duration:300},
+      plugins:{legend:{labels:{font:{family:'DM Sans',size:11}}}},
+      scales:{x:{ticks:{font:{family:'DM Sans',size:11},color:'#1a1814'},grid:{display:false}},
+              y:{max:100,ticks:{font:{family:'DM Sans',size:10},color:'#8a8070',callback:v=>v+'%'},grid:{color:'#f0ece4'}}}
+    }
+  });
+
+  // Steps by phase box
+  destroyChart('steps-phase');
+  const ctx3=document.getElementById('chart-steps-phase').getContext('2d');
+  // Build daily step data with phase labels
+  const stepsByPhase={menstrual:[],follicular:[],ovulatory:[],luteal:[]};
+  for(const a of activityData){
+    if(!a.steps)continue;
+    const ph=getPhase(a.date,periodData);
+    if(ph&&stepsByPhase[ph])stepsByPhase[ph].push(a.steps);
+  }
+  charts['steps-phase']=new Chart(ctx3,{
+    type:'bar',
+    data:{labels:PHASES.map(ph=>PC[ph].label),datasets:[
+      {label:'Median steps',data:PHASES.map(ph=>stepsByPhase[ph].length?+median(stepsByPhase[ph]).toFixed(0):null),backgroundColor:PHASES.map(ph=>PC[ph].line+'bb'),borderRadius:5},
+      {label:'Average steps',data:PHASES.map(ph=>stepsByPhase[ph].length?+mean(stepsByPhase[ph]).toFixed(0):null),backgroundColor:PHASES.map(ph=>PC[ph].bg),borderRadius:5,borderWidth:1.5,borderColor:PHASES.map(ph=>PC[ph].line+'66')},
+    ]},
+    options:{responsive:true,animation:{duration:300},
+      plugins:{legend:{labels:{font:{family:'DM Sans',size:11}}}},
+      scales:{x:{ticks:{font:{family:'DM Sans',size:11},color:'#1a1814'},grid:{display:false}},
+              y:{ticks:{font:{family:'DM Sans',size:10},color:'#8a8070',callback:v=>v.toLocaleString()},grid:{color:'#f0ece4'}}}
+    }
+  });
+
+  // Steps + glucose dual-axis timeline (last 90 days)
+  destroyChart('steps-timeline');
+  const ctx4=document.getElementById('chart-steps-timeline').getContext('2d');
+  const now=cgmData[cgmData.length-1].ts;
+  const cut=new Date(now.getTime()-90*864e5);
+  const dailyG=buildDailyAverages().filter(d=>d.date>=cut);
+  const dailyS=activityData.filter(a=>a.date>=cut&&a.steps>0);
+  charts['steps-timeline']=new Chart(ctx4,{
+    type:'line',
+    data:{labels:dailyG.map(d=>d.date),datasets:[
+      {label:'Avg glucose',data:dailyG.map(d=>d.val),borderColor:'#546e7a',borderWidth:2,pointRadius:0,fill:false,tension:.3,yAxisID:'yG'},
+      {label:'Step count',data:dailyG.map(d=>{const a=actMap[d.date.toISOString().slice(0,10)];return a?a.steps:null;}),
+        borderColor:'#2e7d5266',backgroundColor:'rgba(46,125,82,0.1)',borderWidth:1.5,pointRadius:0,fill:true,tension:.3,yAxisID:'yS',spanGaps:true},
+    ]},
+    options:{responsive:true,animation:{duration:300},
+      plugins:{legend:{labels:{font:{family:'DM Sans',size:11}}},
+        tooltip:{mode:'index',intersect:false,callbacks:{label:i=>i.datasetIndex===0?` Glucose: ${i.raw} mg/dL`:(i.raw?` Steps: ${i.raw.toLocaleString()}`:null)},
+          backgroundColor:'#1a1814',padding:10,cornerRadius:6,titleFont:{family:'DM Sans',size:11},bodyFont:{family:'DM Sans',size:12}}},
+      scales:{
+        x:{type:'time',adapters:{date:{}},ticks:{maxTicksLimit:8,font:{family:'DM Sans',size:10},color:'#8a8070'},grid:{color:'#f0ece4'}},
+        yG:{position:'left',min:55,ticks:{font:{family:'DM Sans',size:10},color:'#546e7a',callback:v=>v+' mg/dL'},grid:{color:'#f0ece4'}},
+        yS:{position:'right',min:0,ticks:{font:{family:'DM Sans',size:10},color:'#2e7d52',callback:v=>v.toLocaleString()},grid:{display:false}},
+      }}
+  });
+}
+
+// ── TAB 7: Per-cycle trend ────────────────────────────────
+function buildCycleStats(){
+  // For each cycle that has CGM data, compute full stats
+  const cycleStats=[];
+  for(let i=0;i<periodData.length;i++){
+    const cyc=periodData[i];
+    const nxt=periodData[i+1];
+    const readings=cgmData.filter(r=>r.ts>=cyc.start&&(!nxt||r.ts<nxt.start));
+    if(readings.length<10)continue; // need enough data
+    const vals=readings.map(r=>r.glucose);
+    const s=phaseStats(vals);
+    // per-phase avg for this cycle
+    const pb={menstrual:[],follicular:[],ovulatory:[],luteal:[]};
+    for(const r of readings){
+      // compute phase inline for this specific cycle
+      const len=nxt?Math.round((nxt.start-cyc.start)/864e5):28;
+      const day=Math.floor((r.ts-cyc.start)/864e5)+1;
+      const me=cyc.end?Math.round((cyc.end-cyc.start)/864e5)+1:5;
+      let ph;
+      if(day<=me)ph='menstrual';
+      else if(day<=Math.round(len*.46))ph='follicular';
+      else if(day<=Math.round(len*.57))ph='ovulatory';
+      else ph='luteal';
+      pb[ph].push(r.glucose);
+    }
+    cycleStats.push({
+      start:cyc.start, idx:i,
+      avg:s.mean, tir:s.tir, cv:s.cv, hi:s.hi,
+      menstrual_avg:pb.menstrual.length?mean(pb.menstrual):null,
+      follicular_avg:pb.follicular.length?mean(pb.follicular):null,
+      ovulatory_avg:pb.ovulatory.length?mean(pb.ovulatory):null,
+      luteal_avg:pb.luteal.length?mean(pb.luteal):null,
+      n:vals.length
+    });
+  }
+  return cycleStats;
+}
+
+const TREND_META={
+  avg:{label:'Average glucose',unit:'mg/dL',color:'#546e7a',decimals:1},
+  tir:{label:'Time in range (70–140)',unit:'%',color:'#2e7d52',decimals:1},
+  cv:{label:'Glucose variability (CV)',unit:'%',color:'#bf6010',decimals:1},
+  hi:{label:'Time above 140',unit:'%',color:'#c0392b',decimals:1},
+  luteal_avg:{label:'Luteal phase avg glucose',unit:'mg/dL',color:'#bf6010',decimals:1},
+  follicular_avg:{label:'Follicular phase avg glucose',unit:'mg/dL',color:'#546e7a',decimals:1},
+};
+
+function renderTrend(){
+  const cs=buildCycleStats();
+  if(cs.length<2){document.getElementById('trend-summary').innerHTML='<p style="color:var(--muted);font-size:.82rem">Need at least 2 cycles of CGM data for trend analysis.</p>';return;}
+  const meta=TREND_META[trendMetric];
+  const vals=cs.map(c=>c[trendMetric]).filter(v=>v!=null);
+  const labels=cs.map(c=>c.start);
+
+  // Trend line (simple linear regression on index)
+  const xs=cs.map((_,i)=>i), ys=cs.map(c=>c[trendMetric]??null).filter(v=>v!==null);
+  const xf=cs.map((_,i)=>i).filter((_,i)=>cs[i][trendMetric]!=null);
+  const n=xf.length, sx=xf.reduce((a,b)=>a+b,0), sy=ys.reduce((a,b)=>a+b,0);
+  const sxy=xf.reduce((a,b,i)=>a+b*ys[i],0), sxx=xf.reduce((a,b)=>a+b*b,0);
+  const slope=(n*sxy-sx*sy)/(n*sxx-sx*sx||1);
+  const intercept=(sy-slope*sx)/n;
+  const trendLine=cs.map((_,i)=>+(intercept+slope*i).toFixed(2));
+
+  // Summary stats
+  const first3=vals.slice(0,Math.min(3,vals.length)), last3=vals.slice(-Math.min(3,vals.length));
+  const f3avg=mean(first3), l3avg=mean(last3), change=l3avg-f3avg;
+  const pctChange=(change/f3avg*100);
+  const dir=Math.abs(pctChange)<2?'flat':change>0?'up':'dn';
+  const dirLabel={up:'↑ Increasing',dn:'↓ Decreasing',flat:'→ Stable'}[dir];
+  const dirClass={up:meta.unit==='%'&&trendMetric==='tir'?'trend-dir-dn':'trend-dir-up',
+                  dn:trendMetric==='tir'?'trend-dir-up':'trend-dir-dn',flat:'trend-dir-flat'}[dir];
+
+  document.getElementById('trend-chart-title').textContent=meta.label+' per cycle';
+  document.getElementById('trend-summary').innerHTML=`
+    <div class="trend-stat"><div class="trend-stat-label">Cycles with data</div><div class="trend-stat-val">${cs.length}</div><div class="trend-stat-sub">${cs[0].n}–${cs[cs.length-1].n} readings/cycle avg</div></div>
+    <div class="trend-stat"><div class="trend-stat-label">Overall trend</div><div class="trend-stat-val ${dirClass}">${dirLabel}</div><div class="trend-stat-sub">${change>=0?'+':''}${change.toFixed(meta.decimals)} ${meta.unit} (${pctChange>=0?'+':''}${pctChange.toFixed(1)}%)</div></div>
+    <div class="trend-stat"><div class="trend-stat-label">Range across cycles</div><div class="trend-stat-val">${Math.min(...vals).toFixed(meta.decimals)}–${Math.max(...vals).toFixed(meta.decimals)}</div><div class="trend-stat-sub">${meta.unit}</div></div>`;
+
+  destroyChart('trend');
+  const ctx=document.getElementById('chart-trend').getContext('2d');
+  charts.trend=new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets:[
+      {label:meta.label,data:cs.map(c=>c[trendMetric]!=null?+c[trendMetric].toFixed(meta.decimals):null),
+        borderColor:meta.color,backgroundColor:meta.color+'22',borderWidth:2.5,fill:true,
+        pointRadius:5,pointHoverRadius:7,pointBackgroundColor:meta.color,tension:.3,spanGaps:true},
+      {label:'Trend line',data:trendLine,borderColor:meta.color+'88',borderWidth:1.5,
+        borderDash:[5,4],pointRadius:0,fill:false,tension:0},
+    ]},
+    options:{responsive:true,animation:{duration:300},
+      plugins:{legend:{labels:{font:{family:'DM Sans',size:11}}},
+        tooltip:{callbacks:{
+          title:i=>fmtD(labels[i[0].dataIndex])+' (cycle '+(i[0].dataIndex+1)+')',
+          label:i=>` ${i.dataset.label}: ${i.raw!=null?i.raw+' '+meta.unit:'no data'}`
+        },backgroundColor:'#1a1814',padding:10,cornerRadius:6,titleFont:{family:'DM Sans',size:11},bodyFont:{family:'DM Sans',size:12}}},
+      scales:{
+        x:{type:'time',adapters:{date:{}},ticks:{maxTicksLimit:10,font:{family:'DM Sans',size:10},color:'#8a8070'},grid:{color:'#f0ece4'}},
+        y:{ticks:{font:{family:'DM Sans',size:10},color:'#8a8070',callback:v=>v+' '+meta.unit},grid:{color:'#f0ece4'}}
+      }}
+  });
+
+  // All-phases overview chart
+  destroyChart('trend-phases');
+  const ctx2=document.getElementById('chart-trend-phases').getContext('2d');
+  charts['trend-phases']=new Chart(ctx2,{
+    type:'line',
+    data:{labels,datasets:[
+      {label:'Menstrual',data:cs.map(c=>c.menstrual_avg!=null?+c.menstrual_avg.toFixed(1):null),borderColor:'#c0392b',borderWidth:2,pointRadius:3,fill:false,tension:.3,spanGaps:true},
+      {label:'Follicular',data:cs.map(c=>c.follicular_avg!=null?+c.follicular_avg.toFixed(1):null),borderColor:'#546e7a',borderWidth:2,pointRadius:3,fill:false,tension:.3,spanGaps:true},
+      {label:'Ovulatory',data:cs.map(c=>c.ovulatory_avg!=null?+c.ovulatory_avg.toFixed(1):null),borderColor:'#2e7d52',borderWidth:2,pointRadius:3,fill:false,tension:.3,spanGaps:true},
+      {label:'Luteal',data:cs.map(c=>c.luteal_avg!=null?+c.luteal_avg.toFixed(1):null),borderColor:'#bf6010',borderWidth:2,pointRadius:3,fill:false,tension:.3,spanGaps:true},
+    ]},
+    options:{responsive:true,animation:{duration:300},
+      plugins:{legend:{labels:{font:{family:'DM Sans',size:11}}},
+        tooltip:{callbacks:{
+          title:i=>fmtD(labels[i[0].dataIndex]),
+          label:i=>` ${i.dataset.label}: ${i.raw!=null?i.raw+' mg/dL':'—'}`
+        },mode:'index',intersect:false,backgroundColor:'#1a1814',padding:10,cornerRadius:6,titleFont:{family:'DM Sans',size:11},bodyFont:{family:'DM Sans',size:12}},
+        annotation:{annotations:{target:{type:'box',yMin:70,yMax:140,backgroundColor:'rgba(220,215,205,0.25)',borderWidth:0}}}},
+      scales:{
+        x:{type:'time',adapters:{date:{}},ticks:{maxTicksLimit:10,font:{family:'DM Sans',size:10},color:'#8a8070'},grid:{color:'#f0ece4'}},
+        y:{min:60,ticks:{font:{family:'DM Sans',size:10},color:'#8a8070',callback:v=>v+' mg/dL'},grid:{color:'#f0ece4'}}
+      }}
+  });
+}
+
+// ── TAB 6: Forecast ───────────────────────────────────────
+// JS decomposition model: trend + cycle seasonality + uncertainty bands
+
+function buildDailyAverages(){
+  // Group readings by date → daily mean
+  const map={};
+  for(const r of cgmData){
+    const key=r.ts.toISOString().slice(0,10);
+    if(!map[key])map[key]=[];
+    map[key].push(r.glucose);
+  }
+  return Object.entries(map)
+    .map(([d,vals])=>({date:new Date(d+'T12:00:00'),val:+mean(vals).toFixed(1)}))
+    .sort((a,b)=>a.date-b.date);
+}
+
+function linearTrend(dailies){
+  const n=dailies.length;
+  const xs=dailies.map((_,i)=>i);
+  const ys=dailies.map(d=>d.val);
+  const sx=xs.reduce((a,b)=>a+b,0), sy=ys.reduce((a,b)=>a+b,0);
+  const sxy=xs.reduce((a,b,i)=>a+b*ys[i],0), sxx=xs.reduce((a,b)=>a+b*b,0);
+  const slope=(n*sxy-sx*sy)/(n*sxx-sx*sx||1);
+  const intercept=(sy-slope*sx)/n;
+  return{slope,intercept,at:i=>intercept+slope*i};
+}
+
+function cycleSeasonality(dailies, trend, avgCycleLen){
+  // Compute cycle-day pattern from detrended residuals
+  const buckets=Array.from({length:avgCycleLen+1},()=>[]);
+  for(let i=0;i<dailies.length;i++){
+    const d=dailies[i];
+    let cyc=null;
+    for(let j=periodData.length-1;j>=0;j--){if(periodData[j].start<=d.date){cyc=periodData[j];break;}}
+    if(!cyc)continue;
+    const nxt=periodData[periodData.indexOf(cyc)+1];
+    if(nxt&&d.date>=nxt.start)continue;
+    const day=Math.floor((d.date-cyc.start)/864e5)+1;
+    if(day>=1&&day<=avgCycleLen){
+      const residual=d.val-trend.at(i);
+      buckets[day].push(residual);
+    }
+  }
+  return buckets.map(b=>b.length>=2?mean(b):0);
+}
+
+function renderForecast(useProphet=false){
+  if(!cgmData.length||!periodData.length)return;
+  const fDays=+document.getElementById('forecast-days').value;
+  const hDays=+document.getElementById('forecast-history').value;
+
+  if(useProphet){runProphetForecast(fDays,hDays);return;}
+
+  // ── JS decomposition model ──
+  const dailies=buildDailyAverages();
+  const trend=linearTrend(dailies);
+
+  // Average cycle length
+  const cycleLens=[];
+  for(let i=0;i<periodData.length-1;i++)cycleLens.push(Math.round((periodData[i+1].start-periodData[i].start)/864e5));
+  const avgCycleLen=Math.round(mean(cycleLens))||28;
+
+  const seasonality=cycleSeasonality(dailies,trend,avgCycleLen);
+
+  // Residual std dev for confidence bands
+  const residuals=[];
+  for(let i=0;i<dailies.length;i++){
+    let cyc=null;
+    for(let j=periodData.length-1;j>=0;j--){if(periodData[j].start<=dailies[i].date){cyc=periodData[j];break;}}
+    if(!cyc)continue;
+    const nxt=periodData[periodData.indexOf(cyc)+1];
+    if(nxt&&dailies[i].date>=nxt.start)continue;
+    const day=Math.floor((dailies[i].date-cyc.start)/864e5)+1;
+    if(day>=1&&day<=avgCycleLen){
+      const pred=trend.at(i)+seasonality[day];
+      residuals.push(dailies[i].val-pred);
+    }
+  }
+  const resSd=residuals.length>5?stddev(residuals):15;
+
+  // Get last period to know current cycle day
+  const lastPeriodStart=periodData[periodData.length-1].start;
+  const todayTs=dailies[dailies.length-1].date;
+  const currentCycleDay=Math.floor((todayTs-lastPeriodStart)/864e5)%avgCycleLen+1;
+
+  // Build history (last hDays of dailies)
+  const cutoffDate=new Date(todayTs.getTime()-hDays*864e5);
+  const histDailies=dailies.filter(d=>d.date>=cutoffDate);
+
+  // Build forecast (next fDays)
+  const forecastDates=[], forecastVals=[], confLo=[], confHi=[];
+  for(let f=1;f<=fDays;f++){
+    const fd=new Date(todayTs.getTime()+f*864e5);
+    const cycDay=((currentCycleDay-1+f)%avgCycleLen)+1;
+    const trendVal=trend.at(dailies.length+f);
+    const seas=seasonality[cycDay]||0;
+    const pred=Math.max(55,trendVal+seas);
+    const widening=resSd*(1+f/fDays*1.5); // uncertainty widens over time
+    forecastDates.push(fd);
+    forecastVals.push(+pred.toFixed(1));
+    confLo.push(+Math.max(55,pred-1.5*widening).toFixed(1));
+    confHi.push(+Math.min(350,pred+1.5*widening).toFixed(1));
+  }
+
+  document.getElementById('forecast-title').textContent=`Glucose forecast — JS decomposition model (avg cycle: ${avgCycleLen} days)`;
+
+  // Next phase info
+  const daysLeftInCycle=avgCycleLen-currentCycleDay;
+  const avgMenEnd=Math.round(mean(periodData.filter(c=>c.end).map(c=>Math.round((c.end-c.start)/864e5)+1)))||5;
+  let nextPhase='';
+  if(currentCycleDay<=avgMenEnd)nextPhase=`Follicular starts in ~${avgMenEnd-currentCycleDay+1} days`;
+  else if(currentCycleDay<=Math.round(avgCycleLen*.46))nextPhase=`Ovulatory starts in ~${Math.round(avgCycleLen*.46)-currentCycleDay+1} days`;
+  else if(currentCycleDay<=Math.round(avgCycleLen*.57))nextPhase=`Luteal starts in ~${Math.round(avgCycleLen*.57)-currentCycleDay+1} days`;
+  else nextPhase=`Next period expected in ~${daysLeftInCycle} days`;
+
+  const avgForecastGlucose=mean(forecastVals).toFixed(1);
+  const fi=document.getElementById('forecast-insights');
+  fi.innerHTML=`
+    <div class="insight-card">
+      <div class="insight-tag" style="color:var(--muted)">Current cycle status</div>
+      <div class="insight-text">You are on day <strong>${currentCycleDay}</strong> of your cycle (avg length: <strong>${avgCycleLen} days</strong>). <strong>${nextPhase}.</strong></div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-tag" style="color:var(--muted)">Forecast summary</div>
+      <div class="insight-text">Predicted average glucose over the next ${fDays} days: <strong>${avgForecastGlucose} mg/dL</strong>. Based on your trend (${trend.slope>=0?'+':''}${(trend.slope*30).toFixed(1)} mg/dL per 30 days) plus your cycle pattern.</div>
+    </div>`;
+
+  destroyChart('forecast');
+  const ctx=document.getElementById('chart-forecast').getContext('2d');
+  // Combine history + forecast on same chart
+  const allLabels=[...histDailies.map(d=>d.date),...forecastDates];
+  const histVals=[...histDailies.map(d=>d.val),...Array(fDays).fill(null)];
+  const fcastVals=[...Array(histDailies.length).fill(null),...forecastVals];
+  const bandLo=[...Array(histDailies.length).fill(null),...confLo];
+  const bandHi=[...Array(histDailies.length).fill(null),...confHi];
+
+  charts.forecast=new Chart(ctx,{
+    type:'line',
+    data:{labels:allLabels,datasets:[
+      {label:'Historical (daily avg)',data:histVals,borderColor:'#546e7a',borderWidth:2,pointRadius:0,fill:false,tension:.3,spanGaps:false},
+      {label:'Upper confidence band',data:bandHi,borderColor:'transparent',backgroundColor:'rgba(191,96,16,0.12)',borderWidth:0,fill:'+1',pointRadius:0,tension:.3,spanGaps:true},
+      {label:'Forecast',data:fcastVals,borderColor:'#bf6010',borderWidth:2.5,borderDash:[],pointRadius:0,fill:false,tension:.3,spanGaps:true},
+      {label:'Lower confidence band',data:bandLo,borderColor:'transparent',backgroundColor:'rgba(191,96,16,0.12)',borderWidth:0,fill:false,pointRadius:0,tension:.3,spanGaps:true},
+    ]},
+    options:{responsive:true,animation:{duration:300},
+      plugins:{legend:{labels:{font:{family:'DM Sans',size:11},filter:i=>i.datasetIndex===0||i.datasetIndex===2}},
+        tooltip:{mode:'index',intersect:false,callbacks:{
+          title:i=>allLabels[i[0].dataIndex].toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}),
+          label:i=>{
+            if(i.datasetIndex===0&&i.raw!=null)return` Historical: ${i.raw} mg/dL`;
+            if(i.datasetIndex===2&&i.raw!=null){
+              const fi=i.dataIndex-histDailies.length;
+              return` Forecast: ${i.raw} mg/dL (±${((bandHi[i.dataIndex]-bandLo[i.dataIndex])/2).toFixed(0)})`;
+            }
+            return null;
+          },filter:i=>i.raw!=null
+        },backgroundColor:'#1a1814',padding:10,cornerRadius:6,titleFont:{family:'DM Sans',size:11},bodyFont:{family:'DM Sans',size:12}},
+        annotation:{annotations:{
+          today:{type:'line',xMin:todayTs,xMax:todayTs,borderColor:'#8a8070',borderWidth:1.5,borderDash:[4,4],label:{content:'Today',display:true,position:'start',font:{family:'DM Sans',size:10},color:'#8a8070',backgroundColor:'transparent',yAdjust:-14}},
+          target:{type:'box',yMin:70,yMax:140,backgroundColor:'rgba(220,215,205,0.25)',borderWidth:0}
+        }}},
+      scales:{
+        x:{type:'time',adapters:{date:{}},ticks:{maxTicksLimit:10,font:{family:'DM Sans',size:10},color:'#8a8070'},grid:{color:'#f0ece4'}},
+        y:{min:55,ticks:{font:{family:'DM Sans',size:10},color:'#8a8070',callback:v=>v+' mg/dL'},grid:{color:'#f0ece4'}}
+      }}
+  });
+}
+
+// ── Prophet integration (local Python server) ─────────────
+let prophetAvailable=false;
+
+async function testProphet(){
+  const st=document.getElementById('prophet-status');
+  st.className='prophet-status running';st.style.display='inline-block';st.textContent='Connecting...';
+  try{
+    const r=await fetch('http://localhost:5050/ping',{signal:AbortSignal.timeout(3000)});
+    if(r.ok){prophetAvailable=true;st.className='prophet-status done';st.textContent='✓ Prophet connected';
+      document.getElementById('forecast-title').textContent='Glucose forecast — Prophet model';}
+    else throw new Error();
+  }catch{st.className='prophet-status error';st.textContent='Not running — using JS model';}
+}
+
+async function runProphetForecast(fDays,hDays){
+  const st=document.getElementById('prophet-status');
+  st.className='prophet-status running';st.style.display='inline-block';st.textContent='Running Prophet...';
+  const cutoff=new Date(cgmData[cgmData.length-1].ts.getTime()-hDays*864e5);
+  const payload={
+    readings:cgmData.filter(r=>r.ts>=cutoff).map(r=>({ds:r.ts.toISOString().slice(0,10),y:r.glucose})),
+    periods:periodData.map(c=>({start:c.start.toISOString().slice(0,10),end:c.end?.toISOString().slice(0,10)})),
+    horizon:fDays
+  };
+  try{
+    const res=await fetch('http://localhost:5050/forecast',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const data=await res.json();
+    st.className='prophet-status done';st.textContent='✓ Prophet forecast ready';
+    drawProphetResult(data,hDays);
+  }catch(e){st.className='prophet-status error';st.textContent='Prophet error — using JS model';renderForecast(false);}
+}
+
+function drawProphetResult(data,hDays){
+  // data.forecast = [{ds, yhat, yhat_lower, yhat_upper}]
+  const today=cgmData[cgmData.length-1].ts;
+  const cutoff=new Date(today.getTime()-hDays*864e5);
+  const hist=buildDailyAverages().filter(d=>d.date>=cutoff);
+  const fc=data.forecast.filter(f=>new Date(f.ds)>today);
+  const allLabels=[...hist.map(d=>d.date),...fc.map(f=>new Date(f.ds+'T12:00:00'))];
+  const hv=[...hist.map(d=>d.val),...Array(fc.length).fill(null)];
+  const fv=[...Array(hist.length).fill(null),...fc.map(f=>+f.yhat.toFixed(1))];
+  const lo=[...Array(hist.length).fill(null),...fc.map(f=>+f.yhat_lower.toFixed(1))];
+  const hi2=[...Array(hist.length).fill(null),...fc.map(f=>+f.yhat_upper.toFixed(1))];
+  destroyChart('forecast');
+  document.getElementById('forecast-title').textContent='Glucose forecast — Prophet model (80% confidence interval)';
+  const ctx=document.getElementById('chart-forecast').getContext('2d');
+  charts.forecast=new Chart(ctx,{
+    type:'line',
+    data:{labels:allLabels,datasets:[
+      {label:'Historical',data:hv,borderColor:'#546e7a',borderWidth:2,pointRadius:0,fill:false,tension:.3},
+      {label:'Upper CI',data:hi2,borderColor:'transparent',backgroundColor:'rgba(191,96,16,0.15)',fill:'+1',pointRadius:0,tension:.3,spanGaps:true},
+      {label:'Prophet forecast',data:fv,borderColor:'#bf6010',borderWidth:2.5,pointRadius:0,fill:false,tension:.3,spanGaps:true},
+      {label:'Lower CI',data:lo,borderColor:'transparent',fill:false,pointRadius:0,tension:.3,spanGaps:true},
+    ]},
+    options:{responsive:true,animation:{duration:300},
+      plugins:{legend:{labels:{font:{family:'DM Sans',size:11},filter:i=>i.datasetIndex===0||i.datasetIndex===2}},
+        annotation:{annotations:{today:{type:'line',xMin:today,xMax:today,borderColor:'#8a8070',borderWidth:1.5,borderDash:[4,4]},target:{type:'box',yMin:70,yMax:140,backgroundColor:'rgba(220,215,205,0.25)',borderWidth:0}}}},
+      scales:{x:{type:'time',adapters:{date:{}},ticks:{maxTicksLimit:10,font:{family:'DM Sans',size:10},color:'#8a8070'},grid:{color:'#f0ece4'}},
+              y:{min:55,ticks:{font:{family:'DM Sans',size:10},color:'#8a8070',callback:v=>v+' mg/dL'},grid:{color:'#f0ece4'}}}}
+  });
+}
+
+function downloadProphetServer(){
+  const code=`# prophet_server.py
+# Run: pip install flask prophet pandas && python prophet_server.py
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from prophet import Prophet
+import pandas as pd
+
+app = Flask(__name__)
+CORS(app)
+
+@app.route('/ping')
+def ping():
+    return jsonify({'status': 'ok'})
+
+@app.route('/forecast', methods=['POST'])
+def forecast():
+    data = request.json
+    df = pd.DataFrame(data['readings'])
+    df['ds'] = pd.to_datetime(df['ds'])
+    df = df.groupby('ds')['y'].mean().reset_index()
+    m = Prophet(interval_width=0.80, daily_seasonality=False, weekly_seasonality=True)
+    # Add cycle-based seasonality (~28 days)
+    m.add_seasonality(name='menstrual_cycle', period=28, fourier_order=5)
+    m.fit(df)
+    future = m.make_future_dataframe(periods=data['horizon'])
+    fc = m.predict(future)
+    result = fc[fc['ds'] > df['ds'].max()][['ds','yhat','yhat_lower','yhat_upper']].copy()
+    result['ds'] = result['ds'].dt.strftime('%Y-%m-%d')
+    return jsonify({'forecast': result.to_dict('records')})
+
+if __name__ == '__main__':
+    print("Prophet server running at http://localhost:5050")
+    app.run(port=5050)
+`;
+  const blob=new Blob([code],{type:'text/plain'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='prophet_server.py';a.click();
+}
+function showTab(name,btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+function destroyChart(key){if(charts[key]){charts[key].destroy();delete charts[key];}}
+
+function fmtD(d){if(!d)return'?';return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}
+
+// date adapter
+const s=document.createElement('script');
+s.src='https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js';
+document.head.appendChild(s);
+</script>
+</body>
+</html>
