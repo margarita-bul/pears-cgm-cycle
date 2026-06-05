@@ -675,14 +675,14 @@ function buildPayload(){
 async function submitSurvey(){
   const payload=buildPayload();
 
-  // ── OPTION A: POST to your endpoint (uncomment + set URL) ──
-  // try {
-  //   await fetch('https://script.google.com/macros/s/AKfycbwAPnaRG27N_25KCq4BgKHBpNWVF97bA1D8MU3iiTx9WuZmoJBvOkzciAjtxkVUP9zd/exec', {
-  //     method:'POST',
-  //     headers:{'Content-Type':'application/json'},
-  //     body:JSON.stringify(payload)
-  //   });
-  // } catch(e){ console.error('submit failed', e); }
+   ── OPTION A: POST to your endpoint (uncomment + set URL) ──
+   try {
+     await fetch('https://script.google.com/macros/s/AKfycbwAPnaRG27N_25KCq4BgKHBpNWVF97bA1D8MU3iiTx9WuZmoJBvOkzciAjtxkVUP9zd/exec', {
+       method:'POST',
+       headers:{'Content-Type':'application/json'},
+       body:JSON.stringify(payload)
+     });
+   } catch(e){ console.error('submit failed', e); }
 
   // ── Fallback: keep locally so nothing is lost in testing ──
   try {
