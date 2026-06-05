@@ -182,12 +182,12 @@ const T = {
   successP:{
     en:'Your answers are saved. If you fit the test phase, we will reach out by email with details about the free sensor and platform access.',
     de:'Deine Antworten sind gespeichert. Wenn du zur Testphase passt, melden wir uns per E-Mail mit Details zum kostenlosen Sensor und Plattformzugang.',
-    ru:'Твои ответы сохранены. Если ты подходишь для тест-фазы, мы напишем на email с деталями о бесплатном сенсоре и доступе к платформе.'
+    ru:'Ваши ответы сохранены. Если Вы подходите для тест-фазы, мы напишем на email с деталями о бесплатном сенсоре и доступе к платформе.'
   },
   disclaimer:{
     en:'We process the data you provide solely to evaluate demand and design our product, in line with GDPR. Answers are stored anonymously; providing contact details is optional. You may withdraw at any time. This is not a medical device and not medical advice.',
     de:'Wir verarbeiten deine Angaben ausschließlich zur Bewertung der Nachfrage und Produktgestaltung, gemäß DSGVO. Antworten werden anonym gespeichert; die Angabe von Kontaktdaten ist freiwillig. Du kannst jederzeit widerrufen. Dies ist kein Medizinprodukt und keine medizinische Beratung.',
-    ru:'Мы обрабатываем твои данные исключительно для оценки спроса и разработки продукта, в соответствии с GDPR. Ответы хранятся анонимно; указание контактов необязательно. Ты можешь отозвать согласие в любой момент. Это не медицинское изделие и не медицинская консультация.'
+    ru:'Мы обрабатываем Ваши данные исключительно для оценки спроса и разработки продукта, в соответствии с GDPR. Ответы хранятся анонимно; указание контактов необязательно. Вы можете отозвать согласие в любой момент. Это не медицинское изделие и не медицинская рекомендация.'
   },
 };
 
@@ -201,15 +201,15 @@ const SLIDER_LABELS = {
   diff:{
     en:['No difference','Barely','Very slight','Slight','Somewhat','Clear','Very clear','Strongly different','Completely','Almost foreign','Like two people'],
     de:['Kein Unterschied','Kaum','Sehr leicht','Leicht','Etwas','Deutlich','Sehr deutlich','Stark verschieden','Komplett','Fast fremd','Wie zwei Menschen'],
-    ru:['Без разницы','Едва','Очень слабо','Слабо','Немного','Чётко','Очень чётко','Сильно по-разному','Полностью','Почти чужое','Как два человека']
+    ru:['Разницы нет','Едва','Очень слабо','Слабо','Немного','Чётко','Очень чётко','Сильно по-разному','Полностью','Абсолютно','Как два разных человека']
   }
 };
 
 /* ── Survey definition ────────────────────────────────────── */
 const SURVEY = [
-  { title:{en:'About you',de:'Über dich',ru:'О тебе'}, questions:[
+  { title:{en:'About you',de:'Über dich',ru:'О Вас'}, questions:[
     { id:'age', type:'single', required:true,
-      label:{en:'How old are you?',de:'Wie alt bist du?',ru:'Сколько тебе лет?'},
+      label:{en:'How old are you?',de:'Wie alt bist du?',ru:'Сколько Вам лет?'},
       grid:true,
       options:[
         {v:'18-24',l:{en:'18–24',de:'18–24',ru:'18–24'}},
@@ -228,7 +228,7 @@ const SURVEY = [
         {v:'na',l:{en:'Prefer not to say',de:'Keine Angabe',ru:'Не указывать'}},
       ]},
     { id:'occupation', type:'multi', required:true, allowOther:true,
-      label:{en:'Do you work or study?',de:'Arbeitest oder studierst du?',ru:'Ты работаешь или учишься?'},
+      label:{en:'Do you work or study?',de:'Arbeitest oder studierst du?',ru:'Вы работаете или учитесь?'},
       grid:true,
       options:[
         {v:'study',l:{en:'I study',de:'Ich studiere',ru:'Я учусь'}},
