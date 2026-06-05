@@ -1,1023 +1,706 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Glcycles — Glucose meets your cycle</title>
-<meta name="description" content="Understand how your menstrual cycle shapes your blood sugar. No food logging. No guesswork. Built for PCOS, endometriosis, perimenopause, and every cycle in between.">
+<title>Glycles — Survey</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Instrument+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Onest:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-/* ── Reset & tokens ───────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-  --cream:   #f7f3ec;
-  --parchment: #ede7da;
-  --ink:     #1c1712;
-  --ink2:    #3d3529;
-  --muted:   #8c7e6e;
-  --rose:    #c25c5c;
-  --rose-pale: #f5e8e8;
-  --sage:    #4a6e56;
-  --sage-pale: #e6efe9;
-  --gold:    #b08d4e;
-  --border:  rgba(28,23,18,.1);
-  --r: 10px;
-}
-
-html { scroll-behavior: smooth; }
-
-body {
-  font-family: 'Instrument Sans', sans-serif;
-  background: var(--cream);
-  color: var(--ink);
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-}
-
-/* ── Noise texture overlay ────────────────────────────── */
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 999;
-  opacity: .6;
-}
-
-/* ── Typography ───────────────────────────────────────── */
-h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
-
-/* ── Navigation ───────────────────────────────────────── */
-nav {
-  position: fixed; top: 0; left: 0; right: 0;
-  z-index: 100;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 1.25rem 3rem;
-  background: rgba(247,243,236,.88);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
-}
-
-.nav-logo {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.2rem;
-  font-style: italic;
-  color: var(--ink);
-  text-decoration: none;
-  letter-spacing: -.01em;
-}
-
-.nav-logo span { color: var(--rose); }
-
-.nav-links { display: flex; gap: 2rem; align-items: center; }
-
-.nav-links a {
-  font-size: .82rem;
-  color: var(--muted);
-  text-decoration: none;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-  transition: color .2s;
-}
-
-.nav-links a:hover { color: var(--ink); }
-
-.nav-cta {
-  font-size: .82rem !important;
-  color: var(--ink) !important;
-  background: var(--ink);
-  color: var(--cream) !important;
-  padding: .45rem 1.1rem;
-  border-radius: 20px;
-  transition: background .2s !important;
-}
-
-.nav-cta:hover { background: var(--ink2) !important; }
-
-/* ── Hero ─────────────────────────────────────────────── */
-.hero {
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: center;
-  padding: 8rem 3rem 4rem;
-  gap: 4rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.hero::after {
-  content: '';
-  position: absolute;
-  top: -20%;
-  right: -15%;
-  width: 60vw;
-  height: 60vw;
-  background: radial-gradient(ellipse, #e8d5c4 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-.hero-left { position: relative; z-index: 1; }
-
-.hero-eyebrow {
-  display: inline-flex; align-items: center; gap: .5rem;
-  font-size: .72rem;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--rose);
-  margin-bottom: 1.5rem;
-  padding: .3rem .875rem;
-  background: var(--rose-pale);
-  border-radius: 20px;
-  border: 1px solid #e8c8c8;
-}
-
-.hero-eyebrow::before {
-  content: '';
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--rose);
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: .5; transform: scale(.8); }
-}
-
-.hero h1 {
-  font-size: clamp(2.8rem, 5vw, 4.2rem);
-  font-weight: 400;
-  line-height: 1.08;
-  letter-spacing: -.02em;
-  margin-bottom: 1.5rem;
-  color: var(--ink);
-}
-
-.hero h1 em {
-  font-style: italic;
-  color: var(--rose);
-}
-
-.hero-sub {
-  font-size: 1.05rem;
-  line-height: 1.7;
-  color: var(--ink2);
-  max-width: 480px;
-  margin-bottom: 2.5rem;
-  font-weight: 300;
-}
-
-.hero-actions { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
-
-.btn-primary {
-  display: inline-flex; align-items: center; gap: .5rem;
-  padding: .875rem 2rem;
-  background: var(--ink);
-  color: var(--cream);
-  border-radius: 30px;
-  font-size: .9rem;
-  font-weight: 500;
-  text-decoration: none;
-  transition: transform .2s, background .2s;
-  font-family: 'Instrument Sans', sans-serif;
-}
-
-.btn-primary:hover { background: var(--ink2); transform: translateY(-1px); }
-
-.btn-primary svg { width: 16px; height: 16px; }
-
-.btn-secondary {
-  font-size: .85rem;
-  color: var(--muted);
-  text-decoration: none;
-  display: flex; align-items: center; gap: .35rem;
-  transition: color .2s;
-}
-
-.btn-secondary:hover { color: var(--ink); }
-
-.hero-note {
-  font-size: .73rem;
-  color: var(--muted);
-  margin-top: 1.25rem;
-  display: flex; gap: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.hero-note span { display: flex; align-items: center; gap: .3rem; }
-.hero-note span::before { content: '✓'; color: var(--sage); font-size: .8rem; }
-
-/* ── Chart preview (right side) ──────────────────────── */
-.hero-right {
-  position: relative;
-  z-index: 1;
-  animation: floatIn 1s ease both .3s;
-}
-
-@keyframes floatIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.chart-preview {
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: 0 24px 64px rgba(28,23,18,.12), 0 4px 16px rgba(28,23,18,.06);
-  position: relative;
-}
-
-.chart-preview-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 1.25rem;
-}
-
-.chart-preview-title {
-  font-size: .72rem;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.phase-dots { display: flex; gap: .5rem; }
-.phase-dot { width: 8px; height: 8px; border-radius: 50%; }
-
-.chart-mock { position: relative; height: 180px; overflow: hidden; }
-
-.chart-mock svg { width: 100%; height: 100%; }
-
-.phase-bands {
-  position: absolute; inset: 0;
-  display: flex;
-}
-
-.phase-band {
-  height: 100%;
-  opacity: .12;
-}
-
-.stat-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: .75rem;
-  margin-top: 1.25rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--border);
-}
-
-.stat-item { text-align: center; }
-
-.stat-val {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.5rem;
-  line-height: 1;
-  margin-bottom: .2rem;
-}
-
-.stat-lbl { font-size: .68rem; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
-
-/* ── Section shared ───────────────────────────────────── */
-section { padding: 6rem 3rem; }
-
-.section-label {
-  font-size: .7rem;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 1rem;
-}
-
-.section-title {
-  font-size: clamp(2rem, 3.5vw, 2.8rem);
-  font-weight: 400;
-  line-height: 1.15;
-  letter-spacing: -.02em;
-  max-width: 620px;
-  margin-bottom: 1.25rem;
-}
-
-.section-sub {
-  font-size: 1rem;
-  color: var(--ink2);
-  font-weight: 300;
-  line-height: 1.7;
-  max-width: 540px;
-  margin-bottom: 3rem;
-}
-
-/* ── No food logging strip ────────────────────────────── */
-.strip {
-  background: var(--ink);
-  color: var(--cream);
-  padding: 1.5rem 3rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 3rem;
-  flex-wrap: wrap;
-}
-
-.strip-item {
-  display: flex; align-items: center; gap: .75rem;
-  font-size: .9rem;
-}
-
-.strip-icon {
-  width: 32px; height: 32px;
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1rem;
-  flex-shrink: 0;
-}
-
-.strip-item.no .strip-icon { background: rgba(194,92,92,.2); }
-.strip-item.yes .strip-icon { background: rgba(74,110,86,.2); }
-
-/* ── Features ─────────────────────────────────────────── */
-.features { background: var(--parchment); }
-
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-}
-
-.feature-card {
-  background: var(--cream);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  padding: 1.75rem;
-  transition: transform .2s, box-shadow .2s;
-}
-
-.feature-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 32px rgba(28,23,18,.08);
-}
-
-.feature-icon {
-  width: 40px; height: 40px;
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.2rem;
-  margin-bottom: 1rem;
-}
-
-.feature-card h3 {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.1rem;
-  font-weight: 400;
-  margin-bottom: .5rem;
-}
-
-.feature-card p {
-  font-size: .83rem;
-  color: var(--muted);
-  line-height: 1.6;
-}
-
-.feature-card .tag {
-  display: inline-block;
-  font-size: .67rem;
-  padding: .25rem .6rem;
-  border-radius: 20px;
-  margin-top: .875rem;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-}
-
-/* ── How it works ─────────────────────────────────────── */
-.steps-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
-  position: relative;
-}
-
-.steps-grid::before {
-  content: '';
-  position: absolute;
-  top: 28px; left: calc(16.66% + 1rem);
-  width: calc(66.66% - 2rem);
-  height: 1px;
-  background: var(--border);
-  z-index: 0;
-}
-
-.step { position: relative; z-index: 1; }
-
-.step-num {
-  width: 48px; height: 48px;
-  border-radius: 50%;
-  background: var(--cream);
-  border: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Playfair Display', serif;
-  font-size: 1.1rem;
-  margin-bottom: 1.25rem;
-  color: var(--ink2);
-}
-
-.step h3 {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.05rem;
-  font-weight: 400;
-  margin-bottom: .5rem;
-}
-
-.step p { font-size: .82rem; color: var(--muted); line-height: 1.6; }
-
-.step-detail {
-  display: inline-block;
-  margin-top: .75rem;
-  font-size: .72rem;
-  color: var(--muted);
-  background: var(--parchment);
-  padding: .2rem .6rem;
-  border-radius: 4px;
-  font-family: 'Instrument Sans', monospace;
-}
-
-/* ── Conditions ───────────────────────────────────────── */
-.conditions { background: var(--ink); color: var(--cream); }
-
-.conditions .section-title { color: var(--cream); }
-.conditions .section-sub { color: rgba(247,243,236,.65); max-width: 600px; }
-.conditions .section-label { color: rgba(247,243,236,.4); }
-
-.conditions-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
-}
-
-.condition-card {
-  border: 1px solid rgba(247,243,236,.12);
-  border-radius: var(--r);
-  padding: 1.5rem;
-  transition: border-color .2s, background .2s;
-  cursor: default;
-}
-
-.condition-card:hover {
-  border-color: rgba(247,243,236,.3);
-  background: rgba(247,243,236,.04);
-}
-
-.condition-icon { font-size: 1.5rem; margin-bottom: .875rem; }
-
-.condition-card h3 {
-  font-family: 'Playfair Display', serif;
-  font-size: 1rem;
-  font-weight: 400;
-  margin-bottom: .5rem;
-  color: var(--cream);
-}
-
-.condition-card p { font-size: .78rem; color: rgba(247,243,236,.5); line-height: 1.6; }
-
-.condition-badge {
-  display: inline-block;
-  font-size: .65rem;
-  padding: .2rem .6rem;
-  border-radius: 20px;
-  margin-top: .75rem;
-  letter-spacing: .05em;
-  text-transform: uppercase;
-  border: 1px solid rgba(247,243,236,.2);
-  color: rgba(247,243,236,.5);
-}
-
-/* ── Differentiators ──────────────────────────────────── */
-.vs-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: .85rem;
-}
-
-.vs-table th {
-  text-align: left;
-  padding: .875rem 1.25rem;
-  font-weight: 500;
-  font-size: .72rem;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  background: var(--parchment);
-  border-bottom: 2px solid var(--border);
-}
-
-.vs-table th:first-child { border-radius: var(--r) 0 0 0; }
-.vs-table th:last-child { border-radius: 0 var(--r) 0 0; }
-.vs-table th.ours { background: var(--ink); color: var(--cream); }
-
-.vs-table td {
-  padding: .875rem 1.25rem;
-  border-bottom: 1px solid var(--border);
-  vertical-align: middle;
-}
-
-.vs-table tr:last-child td { border-bottom: none; }
-.vs-table tr:hover td { background: rgba(28,23,18,.02); }
-
-.vs-table td.ours { background: rgba(28,23,18,.03); font-weight: 500; }
-
-.check { color: var(--sage); font-size: 1rem; }
-.cross { color: #b0a090; font-size: 1rem; }
-.highlight { color: var(--rose); font-weight: 500; }
-
-/* ── Privacy ──────────────────────────────────────────── */
-.privacy-banner {
-  background: var(--sage-pale);
-  border: 1px solid #c0d8c8;
-  border-radius: 12px;
-  padding: 2rem 2.5rem;
-  display: flex;
-  gap: 2rem;
-  align-items: flex-start;
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-.privacy-banner-icon {
-  font-size: 2rem;
-  flex-shrink: 0;
-  margin-top: .25rem;
-}
-
-.privacy-banner h3 {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.15rem;
-  font-weight: 400;
-  margin-bottom: .5rem;
-  color: var(--sage);
-}
-
-.privacy-banner p { font-size: .84rem; color: #3a5a46; line-height: 1.7; }
-
-/* ── CTA ──────────────────────────────────────────────── */
-.cta-section {
-  text-align: center;
-  background: var(--parchment);
-  padding: 7rem 3rem;
-}
-
-.cta-section .section-title {
-  max-width: 700px;
-  margin: 0 auto 1.25rem;
-}
-
-.cta-section .section-sub { margin: 0 auto 2.5rem; text-align: center; }
-
-.cta-actions { display: flex; gap: 1rem; align-items: center; justify-content: center; flex-wrap: wrap; }
-
-.disclaimer {
-  font-size: .72rem;
-  color: var(--muted);
-  margin-top: 1.75rem;
-  max-width: 520px;
-  margin-left: auto;
-  margin-right: auto;
-  line-height: 1.6;
-}
-
-/* ── Footer ───────────────────────────────────────────── */
-footer {
-  background: var(--ink);
-  color: rgba(247,243,236,.5);
-  padding: 2.5rem 3rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-  font-size: .78rem;
-}
-
-footer a { color: inherit; text-decoration: none; transition: color .2s; }
-footer a:hover { color: var(--cream); }
-
-.footer-logo {
-  font-family: 'Playfair Display', serif;
-  font-style: italic;
-  color: var(--cream);
-  font-size: 1rem;
-}
-
-.footer-logo span { color: var(--rose); }
-
-.footer-links { display: flex; gap: 1.5rem; }
-
-/* ── Animations ───────────────────────────────────────── */
-.fade-up {
-  opacity: 0;
-  transform: translateY(24px);
-  transition: opacity .6s ease, transform .6s ease;
-}
-
-.fade-up.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* ── Responsive ───────────────────────────────────────── */
-@media (max-width: 900px) {
-  nav { padding: 1rem 1.5rem; }
-  .nav-links { display: none; }
-  .hero { grid-template-columns: 1fr; padding: 6rem 1.5rem 3rem; gap: 2.5rem; min-height: auto; }
-  .hero::after { display: none; }
-  section { padding: 4rem 1.5rem; }
-  .strip { padding: 1.25rem; gap: 1.25rem; }
-  .features-grid { grid-template-columns: 1fr 1fr; }
-  .steps-grid { grid-template-columns: 1fr; }
-  .steps-grid::before { display: none; }
-  .conditions-grid { grid-template-columns: 1fr 1fr; }
-  .privacy-banner { flex-direction: column; padding: 1.5rem; }
-  .vs-table { font-size: .78rem; }
-  .vs-table td, .vs-table th { padding: .65rem .875rem; }
-}
-
-@media (max-width: 600px) {
-  .features-grid { grid-template-columns: 1fr; }
-  .conditions-grid { grid-template-columns: 1fr 1fr; }
-  .hero h1 { font-size: 2.4rem; }
-  .stat-row { grid-template-columns: repeat(2, 1fr); }
+:root{
+  --red:#aa0a28;
+  --red2:#8c0820;
+  --ink:#2a1418;
+  --ink2:#5a4248;
+  --muted:#8a7378;
+  --dim:#b5a3a8;
+  --glass:rgba(255,255,255,.55);
+  --glass-h:rgba(255,255,255,.75);
+  --glass-b:rgba(255,255,255,.7);
+  --glass-bsel:var(--red);
+  --field:rgba(255,255,255,.5);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Onest',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;color:var(--ink);position:relative;overflow-x:hidden}
+
+/* Rose glassmorphism background — original orb construction, lighter palette */
+.bg{position:fixed;inset:0;z-index:0;background:
+  radial-gradient(ellipse 880px 700px at 13% 15%, rgba(170,10,40,.20) 0%, transparent 58%),
+  radial-gradient(ellipse 760px 640px at 88% 86%, rgba(196,120,90,.18) 0%, transparent 56%),
+  radial-gradient(ellipse 640px 600px at 60% 48%, rgba(150,30,45,.12) 0%, transparent 55%),
+  radial-gradient(ellipse 520px 500px at 82% 14%, rgba(214,180,150,.22) 0%, transparent 56%),
+  linear-gradient(155deg,#f3ece4 0%,#efe4da 55%,#f1e6e0 100%)}
+.bg-grain{position:fixed;inset:0;z-index:0;opacity:.03;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+nav{position:sticky;top:0;z-index:99;height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;background:rgba(255,255,255,.4);backdrop-filter:blur(20px) saturate(1.3);border-bottom:1px solid rgba(255,255,255,.5)}
+.logo{font-family:'Outfit',sans-serif;font-weight:900;font-size:1.1rem;letter-spacing:-.02em;color:var(--ink)}
+.logo b{color:var(--red)}
+.lang{display:flex;gap:.25rem;background:rgba(255,255,255,.5);border-radius:100px;padding:.25rem;border:1px solid rgba(255,255,255,.7)}
+.lang button{font-family:'Outfit',sans-serif;font-size:.72rem;font-weight:700;padding:.3rem .7rem;border-radius:100px;border:none;background:transparent;color:var(--muted);cursor:pointer;transition:.15s;letter-spacing:.02em}
+.lang button.active{background:var(--red);color:#fff}
+
+.page{position:relative;z-index:1;max-width:600px;margin:0 auto;padding:2.5rem 1.5rem 4rem}
+.intro{text-align:center;margin-bottom:2rem}
+.intro h1{font-family:'Outfit',sans-serif;font-size:2.4rem;font-weight:900;letter-spacing:-.03em;line-height:1.05;color:var(--ink);margin-bottom:.75rem}
+.intro h1 em{font-style:normal;color:var(--red)}
+.intro p{font-size:.92rem;color:var(--ink2);line-height:1.65;font-weight:300;max-width:440px;margin:0 auto}
+
+.card{background:rgba(255,255,255,.5);backdrop-filter:blur(28px) saturate(1.3);-webkit-backdrop-filter:blur(28px) saturate(1.3);border:1px solid rgba(255,255,255,.65);border-radius:24px;overflow:hidden;box-shadow:0 16px 60px rgba(90,40,30,.12)}
+.prog-wrap{padding:1.5rem 1.75rem .5rem}
+.prog-track{height:4px;background:rgba(170,10,40,.1);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;background:var(--red);border-radius:3px;transition:width .4s ease}
+.prog-lbl{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin-top:.5rem;font-weight:500}
+
+.step-body{padding:.5rem 1.75rem 1.75rem}
+.step-title{font-family:'Outfit',sans-serif;font-size:.66rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--red);margin:1.25rem 0 1.5rem}
+.q{margin-bottom:1.75rem}
+.q-text{font-family:'Outfit',sans-serif;font-size:1rem;font-weight:700;color:var(--ink);line-height:1.35;margin-bottom:.2rem}
+.q-text .opt-tag{font-family:'Onest',sans-serif;font-size:.78rem;font-weight:400;color:var(--muted)}
+.q-req{color:var(--red);margin-left:.15rem}
+.q-hint{font-size:.78rem;color:var(--muted);font-weight:300;margin-bottom:.65rem}
+.q-err{font-size:.74rem;color:var(--red);font-weight:500;margin-top:.4rem;display:none}
+.q.invalid .q-err{display:block}
+.q.invalid .opts-box{outline:1.5px solid rgba(170,10,40,.3);outline-offset:6px;border-radius:12px}
+
+.opts{display:flex;flex-direction:column;gap:.4rem}
+.opts.two{display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
+.opt{display:flex;align-items:center;gap:.7rem;padding:.7rem .9rem;border-radius:12px;border:1.5px solid rgba(255,255,255,.75);background:rgba(255,255,255,.42);color:var(--ink2);font-size:.84rem;font-family:'Onest',sans-serif;cursor:pointer;transition:.15s;text-align:left;width:100%;line-height:1.3;backdrop-filter:blur(6px)}
+.opt:hover{background:rgba(255,255,255,.7);border-color:rgba(170,10,40,.3)}
+.opt.sel{border-color:var(--red);background:rgba(170,10,40,.07);color:var(--ink);font-weight:500}
+.opt-mark{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--dim);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.15s}
+.opt-mark.sq{border-radius:5px}
+.opt.sel .opt-mark{background:var(--red);border-color:var(--red)}
+.opt.sel .opt-mark::after{content:'';width:5px;height:5px;border-radius:50%;background:#fff}
+.opt.sel .opt-mark.sq::after{border-radius:1px}
+
+.other-wrap{margin-top:.5rem}
+.field{width:100%;background:rgba(255,255,255,.5);border:1.5px solid rgba(255,255,255,.8);border-radius:12px;padding:.75rem .9rem;color:var(--ink);font-family:'Onest',sans-serif;font-size:.86rem;outline:none;transition:.15s}
+.field:focus{border-color:rgba(170,10,40,.4);background:rgba(255,255,255,.8)}
+.field::placeholder{color:var(--dim)}
+textarea.field{min-height:84px;resize:vertical}
+
+.slider-box{padding:.25rem 0}
+.slider-ends{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin-bottom:.65rem;font-weight:300}
+input[type=range]{width:100%;-webkit-appearance:none;height:5px;border-radius:3px;outline:none;cursor:pointer;background:rgba(170,10,40,.15)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:#fff;border:3px solid var(--red);cursor:pointer;box-shadow:0 2px 8px rgba(170,10,40,.25);transition:transform .15s}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.12)}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#fff;border:3px solid var(--red);cursor:pointer}
+.slider-val{text-align:center;font-family:'Outfit',sans-serif;font-size:1.05rem;font-weight:800;color:var(--red);margin-top:.6rem}
+.slider-desc{text-align:center;font-size:.74rem;color:var(--muted);margin-top:.1rem;font-weight:300}
+
+.consent{display:flex;gap:.7rem;align-items:flex-start;padding:1rem;background:rgba(255,255,255,.4);border-radius:12px;border:1px solid rgba(255,255,255,.7);margin-top:.5rem}
+.consent input{width:18px;height:18px;flex-shrink:0;margin-top:.1rem;accent-color:var(--red);cursor:pointer}
+.consent label{font-size:.78rem;color:var(--ink2);line-height:1.55;font-weight:300;cursor:pointer}
+
+.nav-row{display:flex;justify-content:space-between;align-items:center;padding:1.25rem 1.75rem;border-top:1px solid rgba(255,255,255,.6)}
+.btn-back{font-family:'Onest',sans-serif;font-size:.82rem;font-weight:500;color:var(--muted);background:none;border:none;cursor:pointer;transition:.15s;padding:.5rem 0}
+.btn-back:hover{color:var(--ink)}
+.btn-back.hide{visibility:hidden}
+.btn-next{font-family:'Outfit',sans-serif;font-size:.86rem;font-weight:700;padding:.72rem 1.85rem;border-radius:100px;background:var(--red);color:#fff;border:none;cursor:pointer;transition:.15s;letter-spacing:.02em}
+.btn-next:hover{background:var(--red2)}
+
+.success{display:none;text-align:center;padding:3.5rem 2rem}
+.success-ic{width:64px;height:64px;border-radius:50%;background:rgba(170,10,40,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;font-size:1.5rem;color:var(--red)}
+.success h2{font-family:'Outfit',sans-serif;font-size:1.9rem;font-weight:900;color:var(--ink);margin-bottom:.75rem;letter-spacing:-.02em}
+.success p{font-size:.9rem;color:var(--ink2);line-height:1.7;font-weight:300;max-width:380px;margin:0 auto}
+
+.disclaimer{position:relative;z-index:1;text-align:center;font-size:.7rem;color:var(--muted);padding:1.5rem;line-height:1.6;max-width:560px;margin:0 auto;font-weight:300}
+
+@media(max-width:520px){
+  nav{padding:0 1rem}
+  .page{padding:1.5rem 1rem 3rem}
+  .intro h1{font-size:1.9rem}
+  .step-body,.nav-row,.prog-wrap{padding-left:1.25rem;padding-right:1.25rem}
+  .opts.two{grid-template-columns:1fr}
 }
 </style>
 </head>
 <body>
+<div class="bg"></div>
+<div class="bg-grain"></div>
 
-<!-- Nav -->
 <nav>
-  <a href="#" class="nav-logo">Gl<span>y</span>cles</a>
-  <div class="nav-links">
-    <a href="#how">How it works</a>
-    <a href="#features">Features</a>
-    <a href="#conditions">For your condition</a>
-    <a href="cgm_cycle_v4.html" class="nav-cta">Open app →</a>
+  <div class="logo">gl<b>y</b>cles.</div>
+  <div class="lang" id="lang">
+    <button data-l="en">EN</button>
+    <button data-l="de" class="active">DE</button>
+    <button data-l="ru">RU</button>
   </div>
 </nav>
 
-<!-- Hero -->
-<section class="hero">
-  <div class="hero-left">
-    <div class="hero-eyebrow">Early access · free to use</div>
-    <h1>Your glucose<br>follows your <em>cycle.</em><br>Now you can see it.</h1>
-    <p class="hero-sub">
-      Upload your CGM data and period history. Glycles maps every glucose reading to its cycle phase — showing you the patterns your doctor has never been able to show you.
-    </p>
-    <div class="hero-actions">
-      <a href="cgm_cycle_v4.html" class="btn-primary">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        Analyse my data
-      </a>
-      <a href="#how" class="btn-secondary">See how it works ↓</a>
+<div class="page">
+  <div class="intro">
+    <h1 id="intro-h"></h1>
+    <p id="intro-p"></p>
+  </div>
+
+  <div class="card" id="card">
+    <div class="prog-wrap">
+      <div class="prog-track"><div class="prog-fill" id="prog" style="width:0%"></div></div>
+      <div class="prog-lbl"><span id="prog-step"></span><span id="prog-pct"></span></div>
     </div>
-    <div class="hero-note">
-      <span>No food logging</span>
-      <span>No account needed</span>
-      <span>Data stays on your device</span>
+    <div class="step-body" id="step-body"></div>
+    <div class="nav-row">
+      <button class="btn-back hide" id="btn-back"></button>
+      <button class="btn-next" id="btn-next"></button>
     </div>
   </div>
 
-  <div class="hero-right">
-    <div class="chart-preview">
-      <div class="chart-preview-header">
-        <span class="chart-preview-title">Glucose by cycle phase · last 90 days</span>
-        <div class="phase-dots">
-          <div class="phase-dot" style="background:#c0392b" title="Menstrual"></div>
-          <div class="phase-dot" style="background:#546e7a" title="Follicular"></div>
-          <div class="phase-dot" style="background:#2e7d52" title="Ovulatory"></div>
-          <div class="phase-dot" style="background:#bf6010" title="Luteal"></div>
-        </div>
-      </div>
-
-      <!-- SVG chart mockup -->
-      <div class="chart-mock">
-        <svg viewBox="0 0 560 180" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="gm" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stop-color="#c0392b" stop-opacity=".15"/>
-              <stop offset="22%" stop-color="#546e7a" stop-opacity=".15"/>
-              <stop offset="46%" stop-color="#2e7d52" stop-opacity=".15"/>
-              <stop offset="57%" stop-color="#bf6010" stop-opacity=".15"/>
-              <stop offset="100%" stop-color="#bf6010" stop-opacity=".15"/>
-            </linearGradient>
-          </defs>
-          <!-- Phase background -->
-          <rect x="0"   y="0" width="123" height="180" fill="#c0392b" opacity=".07"/>
-          <rect x="123" y="0" width="135" height="180" fill="#546e7a" opacity=".07"/>
-          <rect x="258" y="0" width="62"  height="180" fill="#2e7d52" opacity=".1"/>
-          <rect x="320" y="0" width="240" height="180" fill="#bf6010" opacity=".07"/>
-          <!-- Target range band -->
-          <rect x="0" y="62" width="560" height="54" fill="#e8e4dc" opacity=".5"/>
-          <!-- Glucose line -->
-          <polyline fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-            points="
-              0,95 14,88 28,92 42,80 56,75 70,85 84,90 98,82 112,78
-              123,84 137,72 151,68 165,74 179,65 193,70 207,68 221,72 235,75 249,70 257,68
-              258,64 272,60 286,62 298,58
-              320,72 334,82 348,88 362,95 376,105 390,112 404,108 418,115 432,118 446,110 460,120 474,115 488,108 502,112 516,105 530,98 544,102 558,95
-            "
-            stroke="url(#lineGrad)"
-          />
-          <defs>
-            <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%"   stop-color="#c0392b"/>
-              <stop offset="22%"  stop-color="#546e7a"/>
-              <stop offset="46%"  stop-color="#2e7d52"/>
-              <stop offset="100%" stop-color="#bf6010"/>
-            </linearGradient>
-          </defs>
-          <!-- Phase labels -->
-          <text x="8"   y="170" font-size="9" fill="#c0392b" opacity=".7" font-family="sans-serif">Menstrual</text>
-          <text x="131" y="170" font-size="9" fill="#546e7a" opacity=".7" font-family="sans-serif">Follicular</text>
-          <text x="259" y="170" font-size="9" fill="#2e7d52" opacity=".7" font-family="sans-serif">Ovul.</text>
-          <text x="323" y="170" font-size="9" fill="#bf6010" opacity=".7" font-family="sans-serif">Luteal</text>
-        </svg>
-      </div>
-
-      <div class="stat-row">
-        <div class="stat-item">
-          <div class="stat-val" style="color:#546e7a">98</div>
-          <div class="stat-lbl">Follicular avg</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-val" style="color:#2e7d52">94</div>
-          <div class="stat-lbl">Ovulatory avg</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-val" style="color:#bf6010">114</div>
-          <div class="stat-lbl">Luteal avg</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-val" style="color:#c0392b">82%</div>
-          <div class="stat-lbl">Time in range</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- No food logging strip -->
-<div class="strip">
-  <div class="strip-item no">
-    <div class="strip-icon">🍽️</div>
-    <span>No food logging — ever</span>
-  </div>
-  <div class="strip-item no">
-    <div class="strip-icon">💳</div>
-    <span>No credit card required</span>
-  </div>
-  <div class="strip-item no">
-    <div class="strip-icon">📡</div>
-    <span>No data sent to any server</span>
-  </div>
-  <div class="strip-item yes">
-    <div class="strip-icon">✓</div>
-    <span>Works with Libre 3 & Dexcom</span>
-  </div>
-  <div class="strip-item yes">
-    <div class="strip-icon">✓</div>
-    <span>Built for irregular cycles</span>
+  <div class="card success" id="success">
+    <div class="success-ic">✓</div>
+    <h2 id="success-h"></h2>
+    <p id="success-p"></p>
   </div>
 </div>
 
-<!-- How it works -->
-<section id="how">
-  <div class="section-label">Getting started</div>
-  <h2 class="section-title fade-up">Three uploads. Instant insight.</h2>
-  <p class="section-sub fade-up">No account. No app to install. Open in any browser.</p>
-
-  <div class="steps-grid">
-    <div class="step fade-up">
-      <div class="step-num">1</div>
-      <h3>Export your CGM data</h3>
-      <p>Go to LibreView or Dexcom Clarity and download your CSV export. Takes about 30 seconds.</p>
-      <span class="step-detail">FreeStyle Libre 3 · Dexcom G6/G7 · Stelo</span>
-    </div>
-    <div class="step fade-up" style="transition-delay:.1s">
-      <div class="step-num">2</div>
-      <h3>Upload your period data</h3>
-      <p>Export from Apple Health, Clue, or any app that gives you a date list of period starts and ends.</p>
-      <span class="step-detail">.txt or .csv · any format</span>
-    </div>
-    <div class="step fade-up" style="transition-delay:.2s">
-      <div class="step-num">3</div>
-      <h3>See your pattern</h3>
-      <p>Every glucose reading is mapped to its cycle phase. Your personal patterns emerge immediately across seven analysis views.</p>
-      <span class="step-detail">Timeline · Stats · Distribution · Trend · Forecast</span>
-    </div>
-  </div>
-</section>
-
-<!-- Features -->
-<section id="features" class="features">
-  <div class="section-label">What you get</div>
-  <h2 class="section-title fade-up">Seven ways to understand<br>your glucose cycle</h2>
-
-  <div class="features-grid">
-    <div class="feature-card fade-up">
-      <div class="feature-icon" style="background:#f5e8e8">📈</div>
-      <h3>Phase timeline</h3>
-      <p>Your glucose over time, colour-banded by cycle phase. See instantly when your readings rise, fall, or spike relative to where you are in your cycle.</p>
-      <span class="tag" style="background:#f5e8e8;color:#c0392b">Core view</span>
-    </div>
-    <div class="feature-card fade-up" style="transition-delay:.05s">
-      <div class="feature-icon" style="background:#e6efe9">📊</div>
-      <h3>Phase statistics</h3>
-      <p>Average, median, std deviation, CV, time in range, spikes above 180 — all broken down per phase. Auto-generated insight cards explain what the numbers mean.</p>
-      <span class="tag" style="background:#e6efe9;color:#2e7d52">Analysis</span>
-    </div>
-    <div class="feature-card fade-up" style="transition-delay:.1s">
-      <div class="feature-icon" style="background:#fef4e6">🕕</div>
-      <h3>6 AM fasting glucose</h3>
-      <p>The longest you've gone without eating. Shown per phase, per hour of day — revealing how your baseline changes across the cycle independent of food.</p>
-      <span class="tag" style="background:#fef4e6;color:#bf6010">Daily pattern</span>
-    </div>
-    <div class="feature-card fade-up" style="transition-delay:.15s">
-      <div class="feature-icon" style="background:#f0eeff">🔄</div>
-      <h3>Day-of-cycle curve</h3>
-      <p>Average glucose for each day of the cycle across all your data. See the shape — whether it rises gradually into the luteal phase or drops sharply at ovulation.</p>
-      <span class="tag" style="background:#f0eeff;color:#5a4ab0">Pattern</span>
-    </div>
-    <div class="feature-card fade-up" style="transition-delay:.2s">
-      <div class="feature-icon" style="background:#e6efe9">🏃</div>
-      <h3>Activity influence</h3>
-      <p>Compares glucose on high-step vs low-step days, per phase. See whether movement affects your glucose differently depending on where you are in your cycle.</p>
-      <span class="tag" style="background:#e6efe9;color:#2e7d52">Activity</span>
-    </div>
-    <div class="feature-card fade-up" style="transition-delay:.25s">
-      <div class="feature-icon" style="background:#fef0ee">🔮</div>
-      <h3>Forecast</h3>
-      <p>Trend + cycle seasonality decomposition projects your glucose forward with confidence bands. Optional: connect a local Prophet server for full ML forecasting.</p>
-      <span class="tag" style="background:#fef0ee;color:#c0392b">Forecast</span>
-    </div>
-  </div>
-</section>
-
-<!-- Conditions -->
-<section id="conditions" class="conditions">
-  <div class="section-label">Built for your body</div>
-  <h2 class="section-title fade-up">Not just for 28-day cycles</h2>
-  <p class="section-sub fade-up">Most health apps assume regular cycles. We don't. Glycles calculates phases from your actual period dates — not a template.</p>
-
-  <div class="conditions-grid">
-    <div class="condition-card fade-up">
-      <div class="condition-icon">🔵</div>
-      <h3>PCOS</h3>
-      <p>Insulin resistance is central to PCOS. Track how your glucose responds across unpredictable cycle lengths, and see if patterns are improving over time.</p>
-      <span class="condition-badge">Irregular cycles supported</span>
-    </div>
-    <div class="condition-card fade-up" style="transition-delay:.07s">
-      <div class="condition-icon">🔴</div>
-      <h3>Endometriosis</h3>
-      <p>Chronic inflammation can show up in glucose volatility. See how your variability changes by phase and identify your most and least stable windows.</p>
-      <span class="condition-badge">Variability tracking</span>
-    </div>
-    <div class="condition-card fade-up" style="transition-delay:.14s">
-      <div class="condition-icon">🟡</div>
-      <h3>Perimenopause</h3>
-      <p>Cycles become unpredictable as hormones shift. Glycles handles missed cycles, long cycles, and irregular spacing — no average cycle length assumption needed.</p>
-      <span class="condition-badge">Transition-ready</span>
-    </div>
-    <div class="condition-card fade-up" style="transition-delay:.21s">
-      <div class="condition-icon">⚪</div>
-      <h3>Regular cycles</h3>
-      <p>If your cycle is regular, you'll see the cleanest patterns of all. Use the per-cycle trend view to track whether your metabolic health is improving month by month.</p>
-      <span class="condition-badge">Trend tracking</span>
-    </div>
-  </div>
-</section>
-
-<!-- Why different -->
-<section>
-  <div class="section-label">How we compare</div>
-  <h2 class="section-title fade-up">What Glycles does differently</h2>
-  <p class="section-sub fade-up">We focus on the glucose–cycle relationship and nothing else. No coaching, no food diary, no hardware bundle required.</p>
-
-  <div class="fade-up" style="overflow-x:auto;border-radius:var(--r);border:1px solid var(--border)">
-    <table class="vs-table">
-      <thead>
-        <tr>
-          <th>Feature</th>
-          <th class="ours">Glycles</th>
-          <th>Hello Inside</th>
-          <th>Generic CGM apps</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>No food logging required</td>
-          <td class="ours"><span class="check">✓</span></td>
-          <td><span class="cross">✗ Required</span></td>
-          <td><span class="cross">✗ Optional</span></td>
-        </tr>
-        <tr>
-          <td>Cycle phase analysis</td>
-          <td class="ours"><span class="check">✓ 7 views</span></td>
-          <td><span class="check">✓ Basic</span></td>
-          <td><span class="cross">✗</span></td>
-        </tr>
-        <tr>
-          <td>Irregular cycle support (PCOS)</td>
-          <td class="ours"><span class="check highlight">✓ Built-in</span></td>
-          <td><span class="cross">✗</span></td>
-          <td><span class="cross">✗</span></td>
-        </tr>
-        <tr>
-          <td>Works with your existing CGM</td>
-          <td class="ours"><span class="check">✓ Libre, Dexcom, Stelo</span></td>
-          <td><span class="cross">✗ Buy their sensor</span></td>
-          <td><span class="check">✓</span></td>
-        </tr>
-        <tr>
-          <td>6 AM fasting glucose by phase</td>
-          <td class="ours"><span class="check highlight">✓</span></td>
-          <td><span class="cross">✗</span></td>
-          <td><span class="cross">✗</span></td>
-        </tr>
-        <tr>
-          <td>Activity × phase analysis</td>
-          <td class="ours"><span class="check highlight">✓</span></td>
-          <td><span class="cross">✗</span></td>
-          <td><span class="cross">✗</span></td>
-        </tr>
-        <tr>
-          <td>Data stays on your device</td>
-          <td class="ours"><span class="check highlight">✓ Always</span></td>
-          <td><span class="cross">✗ Cloud required</span></td>
-          <td><span class="cross">✗</span></td>
-        </tr>
-        <tr>
-          <td>Cost</td>
-          <td class="ours"><span class="check">Free</span></td>
-          <td><span class="cross">€29+/month</span></td>
-          <td><span class="cross">Varies</span></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</section>
-
-<!-- Privacy -->
-<section style="padding-top:0;padding-bottom:5rem">
-  <div class="privacy-banner fade-up">
-    <div class="privacy-banner-icon">🔒</div>
-    <div>
-      <h3>Your data never leaves your browser</h3>
-      <p>Glycles runs entirely client-side. When you upload your CGM CSV or period file, it is parsed and processed locally in your browser. Nothing is transmitted to any server. There is no account, no cloud storage, and no tracking. Close the tab and the data is gone. This is a deliberate design choice, not a limitation.</p>
-    </div>
-  </div>
-</section>
-
-<!-- CTA -->
-<section class="cta-section">
-  <div class="section-label">Ready?</div>
-  <h2 class="section-title fade-up">Your data is waiting to tell you something</h2>
-  <p class="section-sub fade-up">Upload your CGM export and period history. Patterns you've never seen before emerge in seconds.</p>
-  <div class="cta-actions fade-up">
-    <a href="cgm_cycle_v4.html" class="btn-primary" style="font-size:1rem;padding:1rem 2.25rem">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="18" height="18"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      Open Glycles — it's free
-    </a>
-  </div>
-  <p class="disclaimer">Not a medical device. Not medical advice. Glycles shows patterns in your own data — all interpretations and decisions should be made with your healthcare provider.</p>
-</section>
-
-<!-- Footer -->
-<footer>
-  <div class="footer-logo">Gl<span>y</span>cles</div>
-  <div class="footer-links">
-    <a href="cgm_cycle_v4.html">Open app</a>
-    <a href="mailto:hello@glycles.com">Contact</a>
-  </div>
-  <span>Proof of concept · 2025 · No data collected</span>
-</footer>
+<div class="disclaimer" id="disclaimer"></div>
 
 <script>
-// Intersection observer for fade-up animations
-const obs = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      e.target.classList.add('visible');
-      obs.unobserve(e.target);
-    }
+/* ═══════════════════════════════════════════════════════════
+   i18n + SURVEY SCHEMA
+   Every label is {en, de, ru}
+═══════════════════════════════════════════════════════════ */
+const T = {
+  introH:{en:['Help shape ','Glycles.'],de:['Hilf uns, ','Glycles zu bauen.'],ru:['Помоги создать ','Glycles.']},
+  introP:{
+    en:'A few minutes, anonymous. Your answers shape which features we build — and whether you fit the test phase.',
+    de:'Wenige Minuten, anonym. Deine Antworten bestimmen, welche Funktionen wir bauen — und ob du zur Testphase passt.',
+    ru:'Несколько минут, анонимно. Твои ответы определят, какие функции мы создадим — и подходишь ли ты для тест-фазы.'
+  },
+  step:{en:'Step',de:'Schritt',ru:'Шаг'},
+  of:{en:'of',de:'von',ru:'из'},
+  back:{en:'← Back',de:'← Zurück',ru:'← Назад'},
+  next:{en:'Continue →',de:'Weiter →',ru:'Далее →'},
+  submit:{en:'Submit ✦',de:'Absenden ✦',ru:'Отправить ✦'},
+  optional:{en:'(optional)',de:'(optional)',ru:'(необязательно)'},
+  multi:{en:'(select all that apply)',de:'(Mehrfachauswahl)',ru:'(можно выбрать несколько)'},
+  other:{en:'Something else? Write here…',de:'Etwas anderes? Hier schreiben…',ru:'Что-то ещё? Напишите здесь…'},
+  errReq:{en:'Please answer to continue.',de:'Bitte beantworten, um fortzufahren.',ru:'Пожалуйста, ответьте, чтобы продолжить.'},
+  errConsent:{en:'Please confirm to submit.',de:'Bitte bestätigen zum Absenden.',ru:'Пожалуйста, подтвердите для отправки.'},
+  successH:{en:'Thank you!',de:'Danke!',ru:'Спасибо!'},
+  successP:{
+    en:'Your answers are saved. If you fit the test phase, we will reach out by email with details about the free sensor and platform access.',
+    de:'Deine Antworten sind gespeichert. Wenn du zur Testphase passt, melden wir uns per E-Mail mit Details zum kostenlosen Sensor und Plattformzugang.',
+    ru:'Твои ответы сохранены. Если ты подходишь для тест-фазы, мы напишем на email с деталями о бесплатном сенсоре и доступе к платформе.'
+  },
+  disclaimer:{
+    en:'We process the data you provide solely to evaluate demand and design our product, in line with GDPR. Answers are stored anonymously; providing contact details is optional. You may withdraw at any time. This is not a medical device and not medical advice.',
+    de:'Wir verarbeiten deine Angaben ausschließlich zur Bewertung der Nachfrage und Produktgestaltung, gemäß DSGVO. Antworten werden anonym gespeichert; die Angabe von Kontaktdaten ist freiwillig. Du kannst jederzeit widerrufen. Dies ist kein Medizinprodukt und keine medizinische Beratung.',
+    ru:'Мы обрабатываем твои данные исключительно для оценки спроса и разработки продукта, в соответствии с GDPR. Ответы хранятся анонимно; указание контактов необязательно. Ты можешь отозвать согласие в любой момент. Это не медицинское изделие и не медицинская консультация.'
+  },
+};
+
+// Slider descriptor arrays (index 0–10)
+const SLIDER_LABELS = {
+  intensity:{
+    en:['None','Barely','Mild','A bit bothersome','Noticeable','Manageable','Clear','Strong','Very strong','Severe','Extreme'],
+    de:['Keine','Kaum','Leicht','Etwas lästig','Merklich','Handhabbar','Deutlich','Stark','Sehr stark','Schwer','Extrem'],
+    ru:['Нет','Едва','Слабо','Немного мешает','Заметно','Терпимо','Чётко','Сильно','Очень сильно','Тяжело','Невыносимо']
+  },
+  diff:{
+    en:['No difference','Barely','Very slight','Slight','Somewhat','Clear','Very clear','Strongly different','Completely','Almost foreign','Like two people'],
+    de:['Kein Unterschied','Kaum','Sehr leicht','Leicht','Etwas','Deutlich','Sehr deutlich','Stark verschieden','Komplett','Fast fremd','Wie zwei Menschen'],
+    ru:['Без разницы','Едва','Очень слабо','Слабо','Немного','Чётко','Очень чётко','Сильно по-разному','Полностью','Почти чужое','Как два человека']
+  }
+};
+
+/* ── Survey definition ────────────────────────────────────── */
+const SURVEY = [
+  { title:{en:'About you',de:'Über dich',ru:'О тебе'}, questions:[
+    { id:'age', type:'single', required:true,
+      label:{en:'How old are you?',de:'Wie alt bist du?',ru:'Сколько тебе лет?'},
+      grid:true,
+      options:[
+        {v:'18-24',l:{en:'18–24',de:'18–24',ru:'18–24'}},
+        {v:'25-34',l:{en:'25–34',de:'25–34',ru:'25–34'}},
+        {v:'35-44',l:{en:'35–44',de:'35–44',ru:'35–44'}},
+        {v:'45-54',l:{en:'45–54',de:'45–54',ru:'45–54'}},
+        {v:'55+',l:{en:'55+',de:'55+',ru:'55+'}},
+      ]},
+    { id:'sex', type:'single', required:true,
+      label:{en:'Sex',de:'Geschlecht',ru:'Пол'},
+      grid:true,
+      options:[
+        {v:'f',l:{en:'Female',de:'Weiblich',ru:'Женский'}},
+        {v:'m',l:{en:'Male',de:'Männlich',ru:'Мужской'}},
+        {v:'d',l:{en:'Diverse',de:'Divers',ru:'Другой'}},
+        {v:'na',l:{en:'Prefer not to say',de:'Keine Angabe',ru:'Не указывать'}},
+      ]},
+    { id:'occupation', type:'multi', required:true, allowOther:true,
+      label:{en:'Do you work or study?',de:'Arbeitest oder studierst du?',ru:'Ты работаешь или учишься?'},
+      grid:true,
+      options:[
+        {v:'study',l:{en:'I study',de:'Ich studiere',ru:'Я учусь'}},
+        {v:'w20',l:{en:'Work under 20h / week',de:'Arbeit unter 20 Std./Woche',ru:'Работа менее 20ч/нед'}},
+        {v:'w2035',l:{en:'Work 20–35h / week',de:'Arbeit 20–35 Std./Woche',ru:'Работа 20–35ч/нед'}},
+        {v:'w3540',l:{en:'Work 35–40h / week',de:'Arbeit 35–40 Std./Woche',ru:'Работа 35–40ч/нед'}},
+        {v:'w40',l:{en:'More than 40h / week',de:'Mehr als 40 Std./Woche',ru:'Более 40ч/нед'}},
+        {v:'none',l:{en:'None of the above',de:'Nichts davon',ru:'Ничего из перечисленного'}},
+      ]},
+  ]},
+
+  { title:{en:'Health',de:'Gesundheit',ru:'Здоровье'}, questions:[
+    { id:'horm', type:'single', required:true, grid:true,
+      label:{en:'Do you use hormonal contraception?',de:'Nimmst du hormonelle Verhütung?',ru:'Используешь гормональную контрацепцию?'},
+      options:[
+        {v:'no',l:{en:'No',de:'Nein',ru:'Нет'}},
+        {v:'pill',l:{en:'Combined pill',de:'Kombi-Pille',ru:'Комбинированные таблетки'}},
+        {v:'minipill',l:{en:'Mini pill (progestogen)',de:'Minipille (Gestagen)',ru:'Мини-пили (прогестин)'}},
+        {v:'iud',l:{en:'Hormonal IUD',de:'Hormonspirale',ru:'Гормональная спираль'}},
+        {v:'ring',l:{en:'Vaginal ring',de:'Vaginalring',ru:'Вагинальное кольцо'}},
+        {v:'patch',l:{en:'Patch',de:'Verhütungspflaster',ru:'Пластырь'}},
+        {v:'injection',l:{en:'Injection',de:'Dreimonatsspritze',ru:'Инъекция (укол)'}},
+        {v:'implant',l:{en:'Implant',de:'Hormonimplantat',ru:'Имплант'}},
+        {v:'other',l:{en:'Other',de:'Anderes',ru:'Другое'}},
+      ]},
+    { id:'diabetes', type:'single', required:true,
+      label:{en:'Do you have diabetes or prediabetes?',de:'Hast du Diabetes oder Prädiabetes?',ru:'Есть ли у тебя диабет или преддиабет?'},
+      options:[
+        {v:'no',l:{en:'No',de:'Nein',ru:'Нет'}},
+        {v:'pre',l:{en:'Prediabetes',de:'Prädiabetes',ru:'Преддиабет'}},
+        {v:'t1',l:{en:'Type 1 diabetes',de:'Typ-1-Diabetes',ru:'Диабет 1 типа'}},
+        {v:'t2',l:{en:'Type 2 diabetes',de:'Typ-2-Diabetes',ru:'Диабет 2 типа'}},
+        {v:'unsure',l:{en:'Not sure',de:'Weiß ich nicht',ru:'Не знаю'}},
+      ]},
+  ]},
+
+  // ── T1D-only step (conditional) ──
+  { title:{en:'Type 1 & your cycle',de:'Typ 1 & dein Zyklus',ru:'Тип 1 и твой цикл'},
+    showIf:{q:'diabetes',v:'t1'},
+    questions:[
+      { id:'t1_duration', type:'single', required:true,
+        label:{en:'How long have you lived with Type 1?',de:'Wie lange hast du schon Typ 1?',ru:'Как давно у тебя диабет 1 типа?'},
+        grid:true,
+        options:[
+          {v:'<2',l:{en:'Under 2 years',de:'Unter 2 Jahre',ru:'Менее 2 лет'}},
+          {v:'2-5',l:{en:'2–5 years',de:'2–5 Jahre',ru:'2–5 лет'}},
+          {v:'5-10',l:{en:'5–10 years',de:'5–10 Jahre',ru:'5–10 лет'}},
+          {v:'10+',l:{en:'10+ years',de:'10+ Jahre',ru:'10+ лет'}},
+        ]},
+      { id:'t1_delivery', type:'single', required:true,
+        label:{en:'How do you take insulin?',de:'Wie nimmst du Insulin?',ru:'Как ты вводишь инсулин?'},
+        options:[
+          {v:'pump',l:{en:'Insulin pump',de:'Insulinpumpe',ru:'Инсулиновая помпа'}},
+          {v:'pen',l:{en:'Pens / injections (MDI)',de:'Pens / Spritzen (ICT)',ru:'Ручки / инъекции'}},
+          {v:'aid',l:{en:'Automated / closed-loop system',de:'Automatisiertes / Closed-Loop-System',ru:'Автоматическая система (петля)'}},
+          {v:'other',l:{en:'Other',de:'Anderes',ru:'Другое'}},
+        ]},
+      { id:'t1_monitor', type:'single', required:true,
+        label:{en:'How do you monitor your glucose overall?',de:'Wie misst du deinen Blutzucker insgesamt?',ru:'Как ты в целом следишь за глюкозой?'},
+        options:[
+          {v:'cgm',l:{en:'CGM / sensor (continuous)',de:'CGM / Sensor (kontinuierlich)',ru:'CGM / сенсор (непрерывно)'}},
+          {v:'bgm',l:{en:'Fingerprick / glucose meter',de:'Fingerstich / Messgerät',ru:'Прокол пальца / глюкометр'}},
+          {v:'both',l:{en:'Both',de:'Beides',ru:'И то, и другое'}},
+          {v:'none',l:{en:'Neither',de:'Gar nicht',ru:'Никак'}},
+        ]},
+      { id:'t1_sensor', type:'single', required:true, grid:true, allowOther:true,
+        label:{en:'Which CGM sensor do you use?',de:'Welchen CGM-Sensor nutzt du?',ru:'Какой CGM-сенсор ты используешь?'},
+        options:[
+          {v:'libre2',l:{en:'FreeStyle Libre 2',de:'FreeStyle Libre 2',ru:'FreeStyle Libre 2'}},
+          {v:'libre3',l:{en:'FreeStyle Libre 3',de:'FreeStyle Libre 3',ru:'FreeStyle Libre 3'}},
+          {v:'dexg6',l:{en:'Dexcom G6',de:'Dexcom G6',ru:'Dexcom G6'}},
+          {v:'dexg7',l:{en:'Dexcom G7',de:'Dexcom G7',ru:'Dexcom G7'}},
+          {v:'medtronic',l:{en:'Medtronic Guardian',de:'Medtronic Guardian',ru:'Medtronic Guardian'}},
+          {v:'eversense',l:{en:'Eversense',de:'Eversense',ru:'Eversense'}},
+          {v:'nocgm',l:{en:'No CGM',de:'Kein CGM',ru:'Нет CGM'}},
+        ]},
+      { id:'t1_notice', type:'single', required:true,
+        label:{en:'Do your insulin needs change across your cycle?',de:'Verändert sich dein Insulinbedarf im Zyklus?',ru:'Меняется ли потребность в инсулине в течение цикла?'},
+        options:[
+          {v:'yes-clear',l:{en:'Yes, clearly',de:'Ja, deutlich',ru:'Да, заметно'}},
+          {v:'somewhat',l:{en:'Somewhat',de:'Etwas',ru:'Немного'}},
+          {v:'no',l:{en:'No',de:'Nein',ru:'Нет'}},
+          {v:'never',l:{en:'Never paid attention',de:'Nie darauf geachtet',ru:'Не обращала внимания'}},
+        ]},
+      { id:'t1_phase', type:'multi', required:true, allowOther:true,
+        label:{en:'In which phases do you need more insulin?',de:'In welchen Phasen brauchst du mehr Insulin?',ru:'В какие фазы нужно больше инсулина?'},
+        grid:true,
+        options:[
+          {v:'before',l:{en:'Week before period (luteal)',de:'Woche vor der Periode (luteal)',ru:'Неделя перед месячными (лютеиновая)'}},
+          {v:'during',l:{en:'During period',de:'Während der Periode',ru:'Во время месячных'}},
+          {v:'follicular',l:{en:'After period (follicular)',de:'Nach der Periode (follikulär)',ru:'После месячных (фолликулярная)'}},
+          {v:'ovulation',l:{en:'Around ovulation',de:'Um den Eisprung',ru:'Около овуляции'}},
+          {v:'unsure',l:{en:'Not sure',de:'Unsicher',ru:'Не уверена'}},
+        ]},
+      { id:'t1_adjust', type:'single', required:true,
+        label:{en:'Do you currently adjust insulin based on your cycle?',de:'Passt du dein Insulin aktuell an deinen Zyklus an?',ru:'Корректируешь ли ты инсулин с учётом цикла сейчас?'},
+        options:[
+          {v:'conscious',l:{en:'Yes, consciously',de:'Ja, bewusst',ru:'Да, осознанно'}},
+          {v:'intuitive',l:{en:'Intuitively, not systematically',de:'Intuitiv, nicht systematisch',ru:'Интуитивно, не системно'}},
+          {v:'no',l:{en:'No',de:'Nein',ru:'Нет'}},
+        ]},
+      { id:'t1_disrupt', type:'slider', required:true, sliderType:'intensity',
+        label:{en:'How disruptive are cycle-related glucose swings for you?',de:'Wie störend sind zyklusbedingte Glukoseschwankungen?',ru:'Насколько мешают колебания глюкозы, связанные с циклом?'},
+        ends:{en:['Not at all','Very disruptive'],de:['Gar nicht','Sehr störend'],ru:['Совсем нет','Очень мешают']}},
+    ]},
+
+  { title:{en:'Your cycle',de:'Dein Zyklus',ru:'Твой цикл'}, questions:[
+    { id:'condition', type:'multi', required:true, allowOther:true,
+      label:{en:'What describes your cycle?',de:'Was beschreibt deinen Zyklus?',ru:'Что описывает твой цикл?'},
+      options:[
+        {v:'regular',l:{en:'Regular (21–35 days)',de:'Regelmäßig (21–35 Tage)',ru:'Регулярный (21–35 дней)'}},
+        {v:'pcos',l:{en:'PCOS or suspected',de:'PCOS oder Verdacht',ru:'СПКЯ или подозрение'}},
+        {v:'endo',l:{en:'Endometriosis or suspected',de:'Endometriose oder Verdacht',ru:'Эндометриоз или подозрение'}},
+        {v:'peri',l:{en:'Perimenopause / transition',de:'Perimenopause / Übergang',ru:'Перименопауза / переход'}},
+        {v:'irregular',l:{en:'Irregular / unsure',de:'Unregelmäßig / unsicher',ru:'Нерегулярный / не знаю'}},
+      ]},
+    { id:'symptoms', type:'multi', required:true, allowOther:true,
+      label:{en:'Which symptoms do you experience?',de:'Welche Beschwerden hast du?',ru:'Какие симптомы у тебя есть?'},
+      grid:true,
+      options:[
+        {v:'pain',l:{en:'Pain / cramps',de:'Schmerzen / Krämpfe',ru:'Боль / спазмы'}},
+        {v:'heavy',l:{en:'Heavy bleeding',de:'Starke Blutung',ru:'Обильные выделения'}},
+        {v:'nausea',l:{en:'Nausea',de:'Übelkeit',ru:'Тошнота'}},
+        {v:'migraine',l:{en:'Migraine',de:'Migräne',ru:'Мигрень'}},
+        {v:'sleep',l:{en:'Sleep problems',de:'Schlafstörungen',ru:'Проблемы со сном'}},
+        {v:'fatigue',l:{en:'Strong fatigue',de:'Starke Müdigkeit',ru:'Сильная усталость'}},
+        {v:'mood',l:{en:'Mood swings',de:'Stimmungsschwankungen',ru:'Перепады настроения'}},
+        {v:'digestive',l:{en:'Digestive issues',de:'Verdauungsprobleme',ru:'Проблемы с ЖКТ'}},
+        {v:'none',l:{en:'Few / no symptoms',de:'Kaum / keine',ru:'Почти нет / нет'}},
+      ]},
+  ]},
+
+  { title:{en:'Intensity',de:'Intensität',ru:'Интенсивность'}, questions:[
+    { id:'pms', type:'slider', required:true, sliderType:'intensity',
+      label:{en:'How strong are your PMS symptoms?',de:'Wie stark sind deine PMS-Symptome?',ru:'Насколько сильны симптомы ПМС?'},
+      ends:{en:['None','Very strong'],de:['Keine','Sehr stark'],ru:['Нет','Очень сильно']}},
+    { id:'craving', type:'slider', required:true, sliderType:'intensity',
+      label:{en:'How strong are sweet cravings before your period?',de:'Wie stark ist Heißhunger auf Süßes vor der Periode?',ru:'Насколько сильна тяга к сладкому перед месячными?'},
+      ends:{en:['None','Very strong'],de:['Keine','Sehr stark'],ru:['Нет','Очень сильно']}},
+    { id:'fatigue_meal', type:'slider', required:true, sliderType:'intensity',
+      label:{en:'How tired are you after eating?',de:'Wie müde bist du nach dem Essen?',ru:'Насколько ты устаёшь после еды?'},
+      ends:{en:['Not at all','Extremely'],de:['Gar nicht','Extrem'],ru:['Совсем нет','Очень сильно']}},
+  ]},
+
+  { title:{en:'Phase awareness',de:'Zykluswahrnehmung',ru:'Восприятие фаз'}, questions:[
+    { id:'changes', type:'multi', required:true, allowOther:true,
+      label:{en:'What changes for you across phases?',de:'Was verändert sich je nach Phase?',ru:'Что меняется у тебя по фазам?'},
+      grid:true,
+      options:[
+        {v:'energy',l:{en:'Energy',de:'Energie',ru:'Энергия'}},
+        {v:'mood',l:{en:'Mood',de:'Stimmung',ru:'Настроение'}},
+        {v:'sleep',l:{en:'Sleep',de:'Schlaf',ru:'Сон'}},
+        {v:'focus',l:{en:'Focus',de:'Konzentration',ru:'Концентрация'}},
+        {v:'hunger',l:{en:'Hunger / cravings',de:'Hunger / Heißhunger',ru:'Голод / тяга'}},
+        {v:'sport',l:{en:'Sport performance',de:'Sportliche Leistung',ru:'Спорт. результаты'}},
+        {v:'digest',l:{en:'Digestion',de:'Verdauung',ru:'Пищеварение'}},
+        {v:'weight',l:{en:'Weight / water',de:'Gewicht / Wasser',ru:'Вес / отёки'}},
+      ]},
+    { id:'phasediff', type:'slider', required:true, sliderType:'diff',
+      label:{en:'How different do your phases feel overall?',de:'Wie unterschiedlich fühlen sich deine Phasen an?',ru:'Насколько по-разному ощущаются фазы?'},
+      ends:{en:['No difference','Like two people'],de:['Kein Unterschied','Wie zwei Menschen'],ru:['Без разницы','Как два человека']}},
+  ]},
+
+  { title:{en:'Activity',de:'Aktivität',ru:'Активность'}, questions:[
+    { id:'activity', type:'single', required:true,
+      label:{en:'How active are you?',de:'Wie aktiv bist du?',ru:'Насколько ты активна?'},
+      options:[
+        {v:'low',l:{en:'Mostly sitting',de:'Hauptsächlich sitzend',ru:'В основном сидячий образ'}},
+        {v:'light',l:{en:'Light — 1–2× sport / week',de:'Leicht — 1–2× Sport / Woche',ru:'Лёгкая — 1–2× спорт / нед.'}},
+        {v:'mod',l:{en:'Moderate — 3–4× / week',de:'Mäßig — 3–4× / Woche',ru:'Средняя — 3–4× / нед.'}},
+        {v:'high',l:{en:'Very active — daily',de:'Sehr aktiv — täglich',ru:'Очень активная — ежедневно'}},
+      ]},
+    { id:'tracking', type:'multi', required:true, allowOther:true,
+      label:{en:'What do you already track?',de:'Was trackst du bereits?',ru:'Что ты уже отслеживаешь?'},
+      grid:true,
+      options:[
+        {v:'steps',l:{en:'Steps / activity',de:'Schritte / Aktivität',ru:'Шаги / активность'}},
+        {v:'cycle',l:{en:'Cycle app',de:'Zyklus-App',ru:'Приложение цикла'}},
+        {v:'sleep',l:{en:'Sleep',de:'Schlaf',ru:'Сон'}},
+        {v:'hr',l:{en:'Heart rate',de:'Herzfrequenz',ru:'Пульс'}},
+        {v:'cgm',l:{en:'CGM / glucose',de:'CGM / Glukose',ru:'CGM / глюкоза'}},
+        {v:'nothing',l:{en:'Nothing',de:'Nichts',ru:'Ничего'}},
+      ]},
+    { id:'period_app', type:'multi', required:false, allowOther:true,
+      label:{en:'Which app do you use for period tracking?',de:'Welche App nutzt du zur Zyklus-Verfolgung?',ru:'Какое приложение для отслеживания цикла ты используешь?'},
+      grid:true,
+      options:[
+        {v:'clue',l:{en:'Clue',de:'Clue',ru:'Clue'}},
+        {v:'flo',l:{en:'Flo',de:'Flo',ru:'Flo'}},
+        {v:'natcyc',l:{en:'Natural Cycles',de:'Natural Cycles',ru:'Natural Cycles'}},
+        {v:'apple',l:{en:'Apple Cycle Tracking',de:'Apple Zyklus-Tracking',ru:'Apple (отслеживание цикла)'}},
+        {v:'ovia',l:{en:'Ovia',de:'Ovia',ru:'Ovia'}},
+        {v:'garmin',l:{en:'Garmin Connect',de:'Garmin Connect',ru:'Garmin Connect'}},
+        {v:'notrack',l:{en:'I don\'t track',de:'Ich tracke nicht',ru:'Не отслеживаю'}},
+      ]},
+  ]},
+
+  { title:{en:'What you would use',de:'Was du nutzen würdest',ru:'Что бы ты использовала'}, questions:[
+    { id:'features', type:'multi', required:true, allowOther:true,
+      label:{en:'Which analyses interest you most?',de:'Welche Analysen interessieren dich?',ru:'Какие анализы тебе интересны?'},
+      options:[
+        {v:'phase',l:{en:'Glucose by cycle phase',de:'Glukose pro Zyklusphase',ru:'Глюкоза по фазам цикла'}},
+        {v:'fasting',l:{en:'6 AM fasting value per phase',de:'Nüchternwert (6 Uhr) je Phase',ru:'Значение натощак (6 утра) по фазам'}},
+        {v:'activity',l:{en:'Activity effect on glucose',de:'Einfluss von Aktivität',ru:'Влияние активности на глюкозу'}},
+        {v:'trend',l:{en:'Trend across cycles',de:'Trend über mehrere Zyklen',ru:'Тренд за несколько циклов'}},
+        {v:'predict',l:{en:'Next-phase prediction',de:'Vorhersage der nächsten Phase',ru:'Прогноз следующей фазы'}},
+        {v:'pdf',l:{en:'PDF report for the doctor',de:'PDF-Report für den Arzt',ru:'PDF-отчёт для врача'}},
+        {v:'ai',l:{en:'AI explanations',de:'KI-Erklärungen',ru:'AI-объяснения'}},
+      ]},
+    { id:'pay', type:'single', required:true,
+      label:{en:'Would you pay for this app?',de:'Würdest du für die App zahlen?',ru:'Готова ли ты платить за приложение?'},
+      options:[
+        {v:'free',l:{en:'Only if free',de:'Nur kostenlos',ru:'Только если бесплатно'}},
+        {v:'5',l:{en:'Up to €5 / month',de:'Bis €5 / Monat',ru:'До €5 / мес.'}},
+        {v:'10',l:{en:'Up to €10 / month',de:'Bis €10 / Monat',ru:'До €10 / мес.'}},
+        {v:'more',l:{en:'More, if worth it',de:'Mehr, wenn es sich lohnt',ru:'Больше, если стоит того'}},
+      ]},
+  ]},
+
+  { title:{en:'Almost done',de:'Fast fertig',ru:'Почти готово'}, questions:[
+    { id:'interested', type:'single', required:true,
+      label:{en:'Do you want to take part?',de:'Möchtest du mitmachen?',ru:'Хочешь принять участие?'},
+      options:[
+        {v:'yes',l:{en:'Yes — I want to test the free sensor',de:'Ja — ich will den kostenlosen Sensor testen',ru:'Да — хочу протестировать бесплатный сенсор'}},
+        {v:'maybe',l:{en:'Interested — tell me more',de:'Interessiert — erzählt mir mehr',ru:'Интересно — расскажите подробнее'}},
+        {v:'app',l:{en:'Just the app, no sensor needed',de:'Nur die App, kein Sensor',ru:'Только приложение, без сенсора'}},
+      ]},
+    { id:'email', type:'text', required:false, inputType:'email',
+      label:{en:'Your email',de:'Deine E-Mail',ru:'Твой email'},
+      placeholder:{en:'hello@example.com',de:'hallo@beispiel.de',ru:'hello@example.com'}},
+    { id:'open', type:'textarea', required:false,
+      label:{en:'What would you like to find out about your body?',de:'Was möchtest du über deinen Körper herausfinden?',ru:'Что бы ты хотела узнать о своём теле?'},
+      placeholder:{en:'Write freely…',de:'Frei schreiben…',ru:'Пиши свободно…'}},
+    { id:'consent', type:'consent', required:true,
+      label:{
+        en:'I agree that my answers may be processed anonymously to evaluate and develop this product (GDPR).',
+        de:'Ich stimme zu, dass meine Antworten anonym zur Bewertung und Entwicklung dieses Produkts verarbeitet werden (DSGVO).',
+        ru:'Я согласна, что мои ответы могут быть обработаны анонимно для оценки и разработки продукта (GDPR).'
+      }},
+  ]},
+];
+
+/* ═══════════════════════════════════════════════════════════
+   ENGINE
+═══════════════════════════════════════════════════════════ */
+let lang='de';
+let stepIdx=0;
+const answers={};
+
+function activeSteps(){
+  return SURVEY.filter(s=>{
+    if(!s.showIf) return true;
+    return answers[s.showIf.q]===s.showIf.v;
   });
-}, { threshold: 0.12 });
+}
 
-document.querySelectorAll('.fade-up').forEach(el => obs.observe(el));
+function L(obj){ return obj[lang]||obj.en; }
 
-// Hero content fades in on load
-document.querySelector('.hero-left').style.cssText = 'opacity:0;transform:translateY(16px);transition:opacity .8s ease,transform .8s ease';
-setTimeout(() => {
-  document.querySelector('.hero-left').style.cssText = 'opacity:1;transform:translateY(0);transition:opacity .8s ease,transform .8s ease';
-}, 100);
+function render(){
+  const steps=activeSteps();
+  if(stepIdx>=steps.length) stepIdx=steps.length-1;
+  const step=steps[stepIdx];
+
+  // progress
+  const pct=Math.round((stepIdx+1)/steps.length*100);
+  document.getElementById('prog').style.width=pct+'%';
+  document.getElementById('prog-step').textContent=`${L(T.step)} ${stepIdx+1} ${L(T.of)} ${steps.length}`;
+  document.getElementById('prog-pct').textContent=pct+'%';
+
+  // body
+  const body=document.getElementById('step-body');
+  body.innerHTML=`<div class="step-title">${L(step.title)}</div>`;
+  step.questions.forEach(q=>{ body.appendChild(renderQ(q)); });
+
+  // nav buttons
+  const back=document.getElementById('btn-back');
+  back.classList.toggle('hide', stepIdx===0);
+  back.textContent=L(T.back);
+  const next=document.getElementById('btn-next');
+  next.textContent = (stepIdx===steps.length-1)? L(T.submit) : L(T.next);
+}
+
+function renderQ(q){
+  const wrap=document.createElement('div');
+  wrap.className='q'; wrap.dataset.qid=q.id;
+
+  // label
+  let tag='';
+  if(q.type==='multi') tag=` <span class="opt-tag">${L(T.multi)}</span>`;
+  else if(!q.required) tag=` <span class="opt-tag">${L(T.optional)}</span>`;
+  const req = q.required? '<span class="q-req">*</span>':'';
+  wrap.innerHTML=`<div class="q-text">${L(q.label)}${req}${tag}</div>`;
+  if(q.hint) wrap.innerHTML+=`<div class="q-hint">${L(q.hint)}</div>`;
+
+  const box=document.createElement('div'); box.className='opts-box';
+
+  if(q.type==='single'||q.type==='multi'){
+    const opts=document.createElement('div');
+    opts.className='opts'+(q.grid?' two':'');
+    q.options.forEach(o=>{
+      const b=document.createElement('button');
+      b.className='opt';
+      const cur=answers[q.id];
+      const isSel = q.type==='single'? cur===o.v : Array.isArray(cur)&&cur.includes(o.v);
+      if(isSel) b.classList.add('sel');
+      b.innerHTML=`<span class="opt-mark${q.type==='multi'?' sq':''}"></span>${L(o.l)}`;
+      b.onclick=()=>{
+        if(q.type==='single'){
+          answers[q.id]=o.v;
+          // if diabetes changed, conditional steps may change
+          render();
+        } else {
+          if(!Array.isArray(answers[q.id])) answers[q.id]=[];
+          const i=answers[q.id].indexOf(o.v);
+          if(i>=0) answers[q.id].splice(i,1); else answers[q.id].push(o.v);
+          b.classList.toggle('sel');
+          wrap.classList.remove('invalid');
+        }
+      };
+      opts.appendChild(b);
+    });
+    box.appendChild(opts);
+
+    // free-text "other" for multi
+    if(q.allowOther){
+      const ow=document.createElement('div'); ow.className='other-wrap';
+      const inp=document.createElement('input');
+      inp.className='field'; inp.type='text';
+      inp.placeholder=L(T.other);
+      inp.value=answers[q.id+'_other']||'';
+      inp.oninput=()=>{ answers[q.id+'_other']=inp.value; };
+      ow.appendChild(inp); box.appendChild(ow);
+    }
+  }
+  else if(q.type==='slider'){
+    const sb=document.createElement('div'); sb.className='slider-box';
+    const labels=SLIDER_LABELS[q.sliderType][lang];
+    const val = (answers[q.id]!==undefined)? answers[q.id] : 5;
+    answers[q.id]=val;
+    sb.innerHTML=`<div class="slider-ends"><span>${L({en:q.ends.en[0],de:q.ends.de[0],ru:q.ends.ru[0]})}</span><span>${L({en:q.ends.en[1],de:q.ends.de[1],ru:q.ends.ru[1]})}</span></div>`;
+    const rng=document.createElement('input');
+    rng.type='range'; rng.min=0; rng.max=10; rng.value=val;
+    const valEl=document.createElement('div'); valEl.className='slider-val'; valEl.textContent=val;
+    const descEl=document.createElement('div'); descEl.className='slider-desc'; descEl.textContent=labels[val];
+    function paint(){ rng.style.background=`linear-gradient(to right,var(--red) ${rng.value*10}%,rgba(170,10,40,.15) ${rng.value*10}%)`; }
+    rng.oninput=()=>{ answers[q.id]=+rng.value; valEl.textContent=rng.value; descEl.textContent=labels[rng.value]; paint(); };
+    paint();
+    sb.appendChild(rng); sb.appendChild(valEl); sb.appendChild(descEl);
+    box.appendChild(sb);
+  }
+  else if(q.type==='text'){
+    const inp=document.createElement('input');
+    inp.className='field'; inp.type=q.inputType||'text';
+    inp.placeholder=q.placeholder?L(q.placeholder):'';
+    inp.value=answers[q.id]||'';
+    inp.oninput=()=>{ answers[q.id]=inp.value; };
+    box.appendChild(inp);
+  }
+  else if(q.type==='textarea'){
+    const ta=document.createElement('textarea');
+    ta.className='field'; ta.placeholder=q.placeholder?L(q.placeholder):'';
+    ta.value=answers[q.id]||'';
+    ta.oninput=()=>{ answers[q.id]=ta.value; };
+    box.appendChild(ta);
+  }
+  else if(q.type==='consent'){
+    const c=document.createElement('div'); c.className='consent';
+    const cb=document.createElement('input'); cb.type='checkbox'; cb.id='consent-cb';
+    cb.checked=!!answers[q.id];
+    cb.onchange=()=>{ answers[q.id]=cb.checked; wrap.classList.remove('invalid'); };
+    const lab=document.createElement('label'); lab.htmlFor='consent-cb'; lab.textContent=L(q.label);
+    c.appendChild(cb); c.appendChild(lab);
+    box.appendChild(c);
+  }
+
+  wrap.appendChild(box);
+  const err=document.createElement('div'); err.className='q-err';
+  err.textContent = q.type==='consent'? L(T.errConsent):L(T.errReq);
+  wrap.appendChild(err);
+  return wrap;
+}
+
+function validateStep(){
+  const steps=activeSteps();
+  const step=steps[stepIdx];
+  let ok=true;
+  step.questions.forEach(q=>{
+    if(!q.required) return;
+    const el=document.querySelector(`.q[data-qid="${q.id}"]`);
+    let answered=false;
+    const v=answers[q.id];
+    if(q.type==='multi') answered=Array.isArray(v)&&v.length>0;
+    else if(q.type==='consent') answered=v===true;
+    else if(q.type==='slider') answered=v!==undefined;
+    else answered=v!==undefined&&v!=='';
+    if(!answered){ ok=false; if(el) el.classList.add('invalid'); }
+  });
+  return ok;
+}
+
+document.getElementById('btn-next').onclick=()=>{
+  if(!validateStep()){
+    const bad=document.querySelector('.q.invalid');
+    if(bad) bad.scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+  const steps=activeSteps();
+  if(stepIdx===steps.length-1){ submitSurvey(); return; }
+  stepIdx++; render();
+  document.getElementById('card').scrollIntoView({behavior:'smooth',block:'start'});
+};
+document.getElementById('btn-back').onclick=()=>{
+  if(stepIdx>0){ stepIdx--; render(); document.getElementById('card').scrollIntoView({behavior:'smooth',block:'start'}); }
+};
+
+/* ── Language switch ── */
+document.getElementById('lang').addEventListener('click',e=>{
+  if(e.target.tagName!=='BUTTON') return;
+  lang=e.target.dataset.l;
+  document.documentElement.lang=lang;
+  document.querySelectorAll('#lang button').forEach(b=>b.classList.toggle('active',b.dataset.l===lang));
+  paintStatic(); render();
+});
+
+function paintStatic(){
+  const h=T.introH[lang];
+  document.getElementById('intro-h').innerHTML=`${h[0]}<em>${h[1]}</em>`;
+  document.getElementById('intro-p').textContent=L(T.introP);
+  document.getElementById('disclaimer').textContent=L(T.disclaimer);
+  document.getElementById('success-h').textContent=L(T.successH);
+  document.getElementById('success-p').textContent=L(T.successP);
+}
+
+/* ── Submit + storage ── */
+function buildPayload(){
+  return {
+    response_id: 'r_'+Math.random().toString(36).slice(2)+Date.now().toString(36),
+    submitted_at: new Date().toISOString(),
+    language: lang,
+    answers: answers
+  };
+}
+
+async function submitSurvey(){
+  const payload=buildPayload();
+
+  // ── OPTION A: POST to your endpoint (uncomment + set URL) ──
+  // try {
+  //   await fetch('https://script.google.com/macros/s/AKfycbwAPnaRG27N_25KCq4BgKHBpNWVF97bA1D8MU3iiTx9WuZmoJBvOkzciAjtxkVUP9zd/exec', {
+  //     method:'POST',
+  //     headers:{'Content-Type':'application/json'},
+  //     body:JSON.stringify(payload)
+  //   });
+  // } catch(e){ console.error('submit failed', e); }
+
+  // ── Fallback: keep locally so nothing is lost in testing ──
+  try {
+    const all=JSON.parse(localStorage.getItem('glycles_responses')||'[]');
+    all.push(payload);
+    localStorage.setItem('glycles_responses', JSON.stringify(all));
+  } catch(e){}
+
+  console.log('Survey response:', payload);
+
+  document.getElementById('card').style.display='none';
+  document.getElementById('success').style.display='block';
+  document.getElementById('success').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+// init
+paintStatic();
+render();
 </script>
-
 </body>
 </html>
