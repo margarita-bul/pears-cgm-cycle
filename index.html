@@ -672,31 +672,55 @@ function buildPayload(){
   };
 }
 
-async function submitSurvey(){
-  const payload=buildPayload();
+  async function submitSurvey(){
+  const payload = buildPayload();
 
-   //── OPTION A: POST to your endpoint (uncomment + set URL) ──*/
-   try {
-     await fetch('https://script.google.com/macros/s/AKfycbwAPnaRG27N_25KCq4BgKHBpNWVF97bA1D8MU3iiTx9WuZmoJBvOkzciAjtxkVUP9zd/exec', {
-       method:'POST',
-       headers:{'Content-Type':'application/json'},
-       body:JSON.stringify(payload)
-     });
-   } catch(e){ console.error('submit failed', e); }
-
-  // ── Fallback: keep locally so nothing is lost in testing ──
   try {
-    const all=JSON.parse(localStorage.getItem('glycles_responses')||'[]');
+    await fetch('https://script.google.com/macros/s/AKfycbwAPnaRG27N_25KCq4BgKHBpNWVF97bA1D8MU3iiTx9WuZmoJBvOkzciAjtxkVUP9zd/exec', {
+      method: 'POST',
+      mode: 'no-cors',          // ← add this
+      body: JSON.stringify(payload)
+      // ← remove the headers block entirely
+    });
+  } catch(e){ console.error('submit failed', e); }
+
+  // localStorage fallback stays as-is
+  try {
+    const all = JSON.parse(localStorage.getItem('glycles_responses') || '[]');
     all.push(payload);
     localStorage.setItem('glycles_responses', JSON.stringify(all));
   } catch(e){}
 
-  console.log('Survey response:', payload);
-
-  document.getElementById('card').style.display='none';
-  document.getElementById('success').style.display='block';
-  document.getElementById('success').scrollIntoView({behavior:'smooth',block:'center'});
+  document.getElementById('card').style.display = 'none';
+  document.getElementById('success').style.display = 'block';
+  document.getElementById('success').scrollIntoView({behavior:'smooth', block:'center'});
 }
+  
+// async function submitSurvey(){
+//   const payload=buildPayload();
+
+//    //── OPTION A: POST to your endpoint (uncomment + set URL) ──*/
+//    try {
+//      await fetch('https://script.google.com/macros/s/AKfycbwAPnaRG27N_25KCq4BgKHBpNWVF97bA1D8MU3iiTx9WuZmoJBvOkzciAjtxkVUP9zd/exec', {
+//        method:'POST',
+//        headers:{'Content-Type':'application/json'},
+//        body:JSON.stringify(payload)
+//      });
+//    } catch(e){ console.error('submit failed', e); }
+
+//   // ── Fallback: keep locally so nothing is lost in testing ──
+//   try {
+//     const all=JSON.parse(localStorage.getItem('glycles_responses')||'[]');
+//     all.push(payload);
+//     localStorage.setItem('glycles_responses', JSON.stringify(all));
+//   } catch(e){}
+
+//   console.log('Survey response:', payload);
+
+//   document.getElementById('card').style.display='none';
+//   document.getElementById('success').style.display='block';
+//   document.getElementById('success').scrollIntoView({behavior:'smooth',block:'center'});
+// }
 
 // init
 paintStatic();
