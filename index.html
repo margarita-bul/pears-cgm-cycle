@@ -24,7 +24,6 @@
 html{scroll-behavior:smooth}
 body{font-family:'Onest',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;color:var(--ink);position:relative;overflow-x:hidden}
 
-/* Rose glassmorphism background — original orb construction, lighter palette */
 .bg{position:fixed;inset:0;z-index:0;background:
   radial-gradient(ellipse 880px 700px at 13% 15%, rgba(170,10,40,.20) 0%, transparent 58%),
   radial-gradient(ellipse 760px 640px at 88% 86%, rgba(196,120,90,.18) 0%, transparent 56%),
@@ -100,10 +99,20 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
 .btn-next{font-family:'Outfit',sans-serif;font-size:.86rem;font-weight:700;padding:.72rem 1.85rem;border-radius:100px;background:var(--red);color:#fff;border:none;cursor:pointer;transition:.15s;letter-spacing:.02em}
 .btn-next:hover{background:var(--red2)}
 
-.success{display:none;text-align:center;padding:3.5rem 2rem}
+/* Success screen */
+.success{display:none;text-align:center;padding:3rem 2rem 2.5rem}
 .success-ic{width:64px;height:64px;border-radius:50%;background:rgba(170,10,40,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;font-size:1.5rem;color:var(--red)}
 .success h2{font-family:'Outfit',sans-serif;font-size:1.9rem;font-weight:900;color:var(--ink);margin-bottom:.75rem;letter-spacing:-.02em}
 .success p{font-size:.9rem;color:var(--ink2);line-height:1.7;font-weight:300;max-width:380px;margin:0 auto}
+
+.id-block{margin:1.75rem auto 0;max-width:420px;padding:1.1rem 1.25rem;background:rgba(255,255,255,.55);border-radius:16px;border:1px solid rgba(255,255,255,.75);text-align:left}
+.id-block-label{font-size:.74rem;color:var(--ink2);font-weight:500;margin-bottom:.6rem;line-height:1.5}
+.id-row{display:flex;gap:.5rem;align-items:center;margin-bottom:.9rem}
+.id-code{font-size:.75rem;background:rgba(170,10,40,.06);padding:.35rem .65rem;border-radius:8px;color:var(--ink);flex:1;word-break:break-all;font-family:monospace;line-height:1.4}
+.btn-copy{font-family:'Outfit',sans-serif;font-size:.74rem;font-weight:700;padding:.35rem .9rem;border-radius:100px;background:var(--red);color:#fff;border:none;cursor:pointer;white-space:nowrap;transition:.15s;flex-shrink:0}
+.btn-copy:hover{background:var(--red2)}
+.delete-link{font-size:.74rem;color:var(--muted);font-weight:300;text-decoration:underline;cursor:pointer}
+.delete-link:hover{color:var(--ink2)}
 
 .disclaimer{position:relative;z-index:1;text-align:center;font-size:.7rem;color:var(--muted);padding:1.5rem;line-height:1.6;max-width:560px;margin:0 auto;font-weight:300}
 
@@ -151,6 +160,14 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
     <div class="success-ic">✓</div>
     <h2 id="success-h"></h2>
     <p id="success-p"></p>
+    <div class="id-block">
+      <div class="id-block-label" id="id-block-label"></div>
+      <div class="id-row">
+        <span class="id-code" id="response-id-display"></span>
+        <button class="btn-copy" id="copy-btn" onclick="copyId()"></button>
+      </div>
+      <a class="delete-link" id="delete-link" href="#" target="_blank" id="delete-link"></a>
+    </div>
   </div>
 </div>
 
@@ -158,8 +175,12 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
 
 <script>
 /* ═══════════════════════════════════════════════════════════
-   i18n + SURVEY SCHEMA
-   Every label is {en, de, ru}
+   ENDPOINT — your Google Apps Script Web App URL
+═══════════════════════════════════════════════════════════ */
+const ENDPOINT = 'https://script.google.com/macros/s/AKfycbwAPnaRG27N_25KCq4BgKHBpNWVF97bA1D8MU3iiTx9WuZmoJBvOkzciAjtxkVUP9zd/exec';
+
+/* ═══════════════════════════════════════════════════════════
+   i18n
 ═══════════════════════════════════════════════════════════ */
 const T = {
   introH:{en:['Help shape ','Glycles.'],de:['Hilf uns, ','Glycles zu bauen.'],ru:['Помоги создать ','Glycles.']},
@@ -184,14 +205,25 @@ const T = {
     de:'Deine Antworten sind gespeichert. Wenn du zur Testphase passt, melden wir uns per E-Mail mit Details zum kostenlosen Sensor und Plattformzugang.',
     ru:'Ваши ответы сохранены. Если Вы подходите для тест-фазы, мы напишем на email с деталями о бесплатном сенсоре и доступе к платформе.'
   },
+  idBlockLabel:{
+    en:'Save this ID if you ever want to delete your response (GDPR right to erasure):',
+    de:'Speichere diese ID, falls du deine Antwort später löschen möchtest (DSGVO-Recht auf Löschung):',
+    ru:'Сохрани этот ID, если захочешь удалить свой ответ (право на удаление по GDPR):'
+  },
+  copyBtn:{en:'Copy',de:'Kopieren',ru:'Копировать'},
+  copyDone:{en:'Copied ✓',de:'Kopiert ✓',ru:'Скопировано ✓'},
+  deleteLink:{
+    en:'Delete my response',
+    de:'Meine Antwort löschen',
+    ru:'Удалить мой ответ'
+  },
   disclaimer:{
-    en:'We process the data you provide solely to evaluate demand and design our product, in line with GDPR. Answers are stored anonymously; providing contact details is optional. You may withdraw at any time. This is not a medical device and not medical advice.',
-    de:'Wir verarbeiten deine Angaben ausschließlich zur Bewertung der Nachfrage und Produktgestaltung, gemäß DSGVO. Antworten werden anonym gespeichert; die Angabe von Kontaktdaten ist freiwillig. Du kannst jederzeit widerrufen. Dies ist kein Medizinprodukt und keine medizinische Beratung.',
-    ru:'Мы обрабатываем Ваши данные исключительно для оценки спроса и разработки продукта, в соответствии с GDPR. Ответы хранятся анонимно; указание контактов необязательно. Вы можете отозвать согласие в любой момент. Это не медицинское изделие и не медицинская рекомендация.'
+    en:'We process the data you provide solely to evaluate demand and design our product, in line with GDPR. Answers are stored anonymously; providing contact details is optional. You may withdraw at any time by using the deletion link shown after submission. This is not a medical device and not medical advice.',
+    de:'Wir verarbeiten deine Angaben ausschließlich zur Bewertung der Nachfrage und Produktgestaltung, gemäß DSGVO. Antworten werden anonym gespeichert; die Angabe von Kontaktdaten ist freiwillig. Du kannst jederzeit über den nach dem Absenden angezeigten Lösch-Link widerrufen. Dies ist kein Medizinprodukt und keine medizinische Beratung.',
+    ru:'Мы обрабатываем Ваши данные исключительно для оценки спроса и разработки продукта, в соответствии с GDPR. Ответы хранятся анонимно; указание контактов необязательно. Вы можете отозвать согласие в любой момент с помощью ссылки удаления, показанной после отправки. Это не медицинское изделие и не медицинская рекомендация.'
   },
 };
 
-// Slider descriptor arrays (index 0–10)
 const SLIDER_LABELS = {
   intensity:{
     en:['None','Barely','Mild','A bit bothersome','Noticeable','Manageable','Clear','Strong','Very strong','Severe','Extreme'],
@@ -205,7 +237,7 @@ const SLIDER_LABELS = {
   }
 };
 
-/* ── Survey definition ────────────────────────────────────── */
+/* ── Survey definition ── */
 const SURVEY = [
   { title:{en:'About you',de:'Über dich',ru:'О Вас'}, questions:[
     { id:'age', type:'single', required:true,
@@ -265,7 +297,6 @@ const SURVEY = [
       ]},
   ]},
 
-  // ── T1D-only step (conditional) ──
   { title:{en:'Type 1 & your cycle',de:'Typ 1 & dein Zyklus',ru:'Тип 1 и твой цикл'},
     showIf:{q:'diabetes',v:'t1'},
     questions:[
@@ -474,76 +505,71 @@ const SURVEY = [
 /* ═══════════════════════════════════════════════════════════
    ENGINE
 ═══════════════════════════════════════════════════════════ */
-let lang='de';
-let stepIdx=0;
-const answers={};
+let lang = 'de';
+let stepIdx = 0;
+const answers = {};
 
 function activeSteps(){
-  return SURVEY.filter(s=>{
+  return SURVEY.filter(s => {
     if(!s.showIf) return true;
-    return answers[s.showIf.q]===s.showIf.v;
+    return answers[s.showIf.q] === s.showIf.v;
   });
 }
 
-function L(obj){ return obj[lang]||obj.en; }
+function L(obj){ return obj[lang] || obj.en; }
 
 function render(){
-  const steps=activeSteps();
-  if(stepIdx>=steps.length) stepIdx=steps.length-1;
-  const step=steps[stepIdx];
+  const steps = activeSteps();
+  if(stepIdx >= steps.length) stepIdx = steps.length - 1;
+  const step = steps[stepIdx];
 
-  // progress
-  const pct=Math.round((stepIdx+1)/steps.length*100);
-  document.getElementById('prog').style.width=pct+'%';
-  document.getElementById('prog-step').textContent=`${L(T.step)} ${stepIdx+1} ${L(T.of)} ${steps.length}`;
-  document.getElementById('prog-pct').textContent=pct+'%';
+  const pct = Math.round((stepIdx + 1) / steps.length * 100);
+  document.getElementById('prog').style.width = pct + '%';
+  document.getElementById('prog-step').textContent = `${L(T.step)} ${stepIdx+1} ${L(T.of)} ${steps.length}`;
+  document.getElementById('prog-pct').textContent = pct + '%';
 
-  // body
-  const body=document.getElementById('step-body');
-  body.innerHTML=`<div class="step-title">${L(step.title)}</div>`;
-  step.questions.forEach(q=>{ body.appendChild(renderQ(q)); });
+  const body = document.getElementById('step-body');
+  body.innerHTML = `<div class="step-title">${L(step.title)}</div>`;
+  step.questions.forEach(q => { body.appendChild(renderQ(q)); });
 
-  // nav buttons
-  const back=document.getElementById('btn-back');
-  back.classList.toggle('hide', stepIdx===0);
-  back.textContent=L(T.back);
-  const next=document.getElementById('btn-next');
-  next.textContent = (stepIdx===steps.length-1)? L(T.submit) : L(T.next);
+  const back = document.getElementById('btn-back');
+  back.classList.toggle('hide', stepIdx === 0);
+  back.textContent = L(T.back);
+  const next = document.getElementById('btn-next');
+  next.textContent = (stepIdx === steps.length - 1) ? L(T.submit) : L(T.next);
 }
 
 function renderQ(q){
-  const wrap=document.createElement('div');
-  wrap.className='q'; wrap.dataset.qid=q.id;
+  const wrap = document.createElement('div');
+  wrap.className = 'q'; wrap.dataset.qid = q.id;
 
-  // label
-  let tag='';
-  if(q.type==='multi') tag=` <span class="opt-tag">${L(T.multi)}</span>`;
-  else if(!q.required) tag=` <span class="opt-tag">${L(T.optional)}</span>`;
-  const req = q.required? '<span class="q-req">*</span>':'';
-  wrap.innerHTML=`<div class="q-text">${L(q.label)}${req}${tag}</div>`;
-  if(q.hint) wrap.innerHTML+=`<div class="q-hint">${L(q.hint)}</div>`;
+  let tag = '';
+  if(q.type === 'multi') tag = ` <span class="opt-tag">${L(T.multi)}</span>`;
+  else if(!q.required) tag = ` <span class="opt-tag">${L(T.optional)}</span>`;
+  const req = q.required ? '<span class="q-req">*</span>' : '';
+  wrap.innerHTML = `<div class="q-text">${L(q.label)}${req}${tag}</div>`;
+  if(q.hint) wrap.innerHTML += `<div class="q-hint">${L(q.hint)}</div>`;
 
-  const box=document.createElement('div'); box.className='opts-box';
+  const box = document.createElement('div'); box.className = 'opts-box';
 
-  if(q.type==='single'||q.type==='multi'){
-    const opts=document.createElement('div');
-    opts.className='opts'+(q.grid?' two':'');
-    q.options.forEach(o=>{
-      const b=document.createElement('button');
-      b.className='opt';
-      const cur=answers[q.id];
-      const isSel = q.type==='single'? cur===o.v : Array.isArray(cur)&&cur.includes(o.v);
+  if(q.type === 'single' || q.type === 'multi'){
+    const opts = document.createElement('div');
+    opts.className = 'opts' + (q.grid ? ' two' : '');
+    q.options.forEach(o => {
+      const b = document.createElement('button');
+      b.className = 'opt';
+      const cur = answers[q.id];
+      const isSel = q.type === 'single' ? cur === o.v : Array.isArray(cur) && cur.includes(o.v);
       if(isSel) b.classList.add('sel');
-      b.innerHTML=`<span class="opt-mark${q.type==='multi'?' sq':''}"></span>${L(o.l)}`;
-      b.onclick=()=>{
-        if(q.type==='single'){
-          answers[q.id]=o.v;
-          // if diabetes changed, conditional steps may change
+      b.innerHTML = `<span class="opt-mark${q.type === 'multi' ? ' sq' : ''}"></span>${L(o.l)}`;
+      b.onclick = () => {
+        if(q.type === 'single'){
+          answers[q.id] = o.v;
           render();
         } else {
-          if(!Array.isArray(answers[q.id])) answers[q.id]=[];
-          const i=answers[q.id].indexOf(o.v);
-          if(i>=0) answers[q.id].splice(i,1); else answers[q.id].push(o.v);
+          if(!Array.isArray(answers[q.id])) answers[q.id] = [];
+          const i = answers[q.id].indexOf(o.v);
+          if(i >= 0) answers[q.id].splice(i, 1); else answers[q.id].push(o.v);
           b.classList.toggle('sel');
           wrap.classList.remove('invalid');
         }
@@ -552,175 +578,166 @@ function renderQ(q){
     });
     box.appendChild(opts);
 
-    // free-text "other" for multi
     if(q.allowOther){
-      const ow=document.createElement('div'); ow.className='other-wrap';
-      const inp=document.createElement('input');
-      inp.className='field'; inp.type='text';
-      inp.placeholder=L(T.other);
-      inp.value=answers[q.id+'_other']||'';
-      inp.oninput=()=>{ answers[q.id+'_other']=inp.value; };
+      const ow = document.createElement('div'); ow.className = 'other-wrap';
+      const inp = document.createElement('input');
+      inp.className = 'field'; inp.type = 'text';
+      inp.placeholder = L(T.other);
+      inp.value = answers[q.id + '_other'] || '';
+      inp.oninput = () => { answers[q.id + '_other'] = inp.value; };
       ow.appendChild(inp); box.appendChild(ow);
     }
   }
-  else if(q.type==='slider'){
-    const sb=document.createElement('div'); sb.className='slider-box';
-    const labels=SLIDER_LABELS[q.sliderType][lang];
-    const val = (answers[q.id]!==undefined)? answers[q.id] : 5;
-    answers[q.id]=val;
-    sb.innerHTML=`<div class="slider-ends"><span>${L({en:q.ends.en[0],de:q.ends.de[0],ru:q.ends.ru[0]})}</span><span>${L({en:q.ends.en[1],de:q.ends.de[1],ru:q.ends.ru[1]})}</span></div>`;
-    const rng=document.createElement('input');
-    rng.type='range'; rng.min=0; rng.max=10; rng.value=val;
-    const valEl=document.createElement('div'); valEl.className='slider-val'; valEl.textContent=val;
-    const descEl=document.createElement('div'); descEl.className='slider-desc'; descEl.textContent=labels[val];
-    function paint(){ rng.style.background=`linear-gradient(to right,var(--red) ${rng.value*10}%,rgba(170,10,40,.15) ${rng.value*10}%)`; }
-    rng.oninput=()=>{ answers[q.id]=+rng.value; valEl.textContent=rng.value; descEl.textContent=labels[rng.value]; paint(); };
+  else if(q.type === 'slider'){
+    const sb = document.createElement('div'); sb.className = 'slider-box';
+    const labels = SLIDER_LABELS[q.sliderType][lang];
+    const val = (answers[q.id] !== undefined) ? answers[q.id] : 5;
+    answers[q.id] = val;
+    sb.innerHTML = `<div class="slider-ends"><span>${L({en:q.ends.en[0],de:q.ends.de[0],ru:q.ends.ru[0]})}</span><span>${L({en:q.ends.en[1],de:q.ends.de[1],ru:q.ends.ru[1]})}</span></div>`;
+    const rng = document.createElement('input');
+    rng.type = 'range'; rng.min = 0; rng.max = 10; rng.value = val;
+    const valEl = document.createElement('div'); valEl.className = 'slider-val'; valEl.textContent = val;
+    const descEl = document.createElement('div'); descEl.className = 'slider-desc'; descEl.textContent = labels[val];
+    function paint(){ rng.style.background = `linear-gradient(to right,var(--red) ${rng.value*10}%,rgba(170,10,40,.15) ${rng.value*10}%)`; }
+    rng.oninput = () => { answers[q.id] = +rng.value; valEl.textContent = rng.value; descEl.textContent = labels[rng.value]; paint(); };
     paint();
     sb.appendChild(rng); sb.appendChild(valEl); sb.appendChild(descEl);
     box.appendChild(sb);
   }
-  else if(q.type==='text'){
-    const inp=document.createElement('input');
-    inp.className='field'; inp.type=q.inputType||'text';
-    inp.placeholder=q.placeholder?L(q.placeholder):'';
-    inp.value=answers[q.id]||'';
-    inp.oninput=()=>{ answers[q.id]=inp.value; };
+  else if(q.type === 'text'){
+    const inp = document.createElement('input');
+    inp.className = 'field'; inp.type = q.inputType || 'text';
+    inp.placeholder = q.placeholder ? L(q.placeholder) : '';
+    inp.value = answers[q.id] || '';
+    inp.oninput = () => { answers[q.id] = inp.value; };
     box.appendChild(inp);
   }
-  else if(q.type==='textarea'){
-    const ta=document.createElement('textarea');
-    ta.className='field'; ta.placeholder=q.placeholder?L(q.placeholder):'';
-    ta.value=answers[q.id]||'';
-    ta.oninput=()=>{ answers[q.id]=ta.value; };
+  else if(q.type === 'textarea'){
+    const ta = document.createElement('textarea');
+    ta.className = 'field'; ta.placeholder = q.placeholder ? L(q.placeholder) : '';
+    ta.value = answers[q.id] || '';
+    ta.oninput = () => { answers[q.id] = ta.value; };
     box.appendChild(ta);
   }
-  else if(q.type==='consent'){
-    const c=document.createElement('div'); c.className='consent';
-    const cb=document.createElement('input'); cb.type='checkbox'; cb.id='consent-cb';
-    cb.checked=!!answers[q.id];
-    cb.onchange=()=>{ answers[q.id]=cb.checked; wrap.classList.remove('invalid'); };
-    const lab=document.createElement('label'); lab.htmlFor='consent-cb'; lab.textContent=L(q.label);
+  else if(q.type === 'consent'){
+    const c = document.createElement('div'); c.className = 'consent';
+    const cb = document.createElement('input'); cb.type = 'checkbox'; cb.id = 'consent-cb';
+    cb.checked = !!answers[q.id];
+    cb.onchange = () => { answers[q.id] = cb.checked; wrap.classList.remove('invalid'); };
+    const lab = document.createElement('label'); lab.htmlFor = 'consent-cb'; lab.textContent = L(q.label);
     c.appendChild(cb); c.appendChild(lab);
     box.appendChild(c);
   }
 
   wrap.appendChild(box);
-  const err=document.createElement('div'); err.className='q-err';
-  err.textContent = q.type==='consent'? L(T.errConsent):L(T.errReq);
+  const err = document.createElement('div'); err.className = 'q-err';
+  err.textContent = q.type === 'consent' ? L(T.errConsent) : L(T.errReq);
   wrap.appendChild(err);
   return wrap;
 }
 
 function validateStep(){
-  const steps=activeSteps();
-  const step=steps[stepIdx];
-  let ok=true;
-  step.questions.forEach(q=>{
+  const steps = activeSteps();
+  const step = steps[stepIdx];
+  let ok = true;
+  step.questions.forEach(q => {
     if(!q.required) return;
-    const el=document.querySelector(`.q[data-qid="${q.id}"]`);
-    let answered=false;
-    const v=answers[q.id];
-    if(q.type==='multi') answered=Array.isArray(v)&&v.length>0;
-    else if(q.type==='consent') answered=v===true;
-    else if(q.type==='slider') answered=v!==undefined;
-    else answered=v!==undefined&&v!=='';
-    if(!answered){ ok=false; if(el) el.classList.add('invalid'); }
+    const el = document.querySelector(`.q[data-qid="${q.id}"]`);
+    let answered = false;
+    const v = answers[q.id];
+    if(q.type === 'multi') answered = Array.isArray(v) && v.length > 0;
+    else if(q.type === 'consent') answered = v === true;
+    else if(q.type === 'slider') answered = v !== undefined;
+    else answered = v !== undefined && v !== '';
+    if(!answered){ ok = false; if(el) el.classList.add('invalid'); }
   });
   return ok;
 }
 
-document.getElementById('btn-next').onclick=()=>{
+document.getElementById('btn-next').onclick = () => {
   if(!validateStep()){
-    const bad=document.querySelector('.q.invalid');
-    if(bad) bad.scrollIntoView({behavior:'smooth',block:'center'});
+    const bad = document.querySelector('.q.invalid');
+    if(bad) bad.scrollIntoView({behavior:'smooth', block:'center'});
     return;
   }
-  const steps=activeSteps();
-  if(stepIdx===steps.length-1){ submitSurvey(); return; }
+  const steps = activeSteps();
+  if(stepIdx === steps.length - 1){ submitSurvey(); return; }
   stepIdx++; render();
-  document.getElementById('card').scrollIntoView({behavior:'smooth',block:'start'});
+  document.getElementById('card').scrollIntoView({behavior:'smooth', block:'start'});
 };
-document.getElementById('btn-back').onclick=()=>{
-  if(stepIdx>0){ stepIdx--; render(); document.getElementById('card').scrollIntoView({behavior:'smooth',block:'start'}); }
+
+document.getElementById('btn-back').onclick = () => {
+  if(stepIdx > 0){ stepIdx--; render(); document.getElementById('card').scrollIntoView({behavior:'smooth', block:'start'}); }
 };
 
 /* ── Language switch ── */
-document.getElementById('lang').addEventListener('click',e=>{
-  if(e.target.tagName!=='BUTTON') return;
-  lang=e.target.dataset.l;
-  document.documentElement.lang=lang;
-  document.querySelectorAll('#lang button').forEach(b=>b.classList.toggle('active',b.dataset.l===lang));
+document.getElementById('lang').addEventListener('click', e => {
+  if(e.target.tagName !== 'BUTTON') return;
+  lang = e.target.dataset.l;
+  document.documentElement.lang = lang;
+  document.querySelectorAll('#lang button').forEach(b => b.classList.toggle('active', b.dataset.l === lang));
   paintStatic(); render();
 });
 
 function paintStatic(){
-  const h=T.introH[lang];
-  document.getElementById('intro-h').innerHTML=`${h[0]}<em>${h[1]}</em>`;
-  document.getElementById('intro-p').textContent=L(T.introP);
-  document.getElementById('disclaimer').textContent=L(T.disclaimer);
-  document.getElementById('success-h').textContent=L(T.successH);
-  document.getElementById('success-p').textContent=L(T.successP);
+  const h = T.introH[lang];
+  document.getElementById('intro-h').innerHTML = `${h[0]}<em>${h[1]}</em>`;
+  document.getElementById('intro-p').textContent = L(T.introP);
+  document.getElementById('disclaimer').textContent = L(T.disclaimer);
+  document.getElementById('success-h').textContent = L(T.successH);
+  document.getElementById('success-p').textContent = L(T.successP);
+  document.getElementById('id-block-label').textContent = L(T.idBlockLabel);
+  document.getElementById('copy-btn').textContent = L(T.copyBtn);
+  document.getElementById('delete-link').textContent = L(T.deleteLink);
 }
 
-/* ── Submit + storage ── */
+/* ── Submit ── */
 function buildPayload(){
   return {
-    response_id: 'r_'+Math.random().toString(36).slice(2)+Date.now().toString(36),
+    response_id: 'r_' + Math.random().toString(36).slice(2) + Date.now().toString(36),
     submitted_at: new Date().toISOString(),
     language: lang,
     answers: answers
   };
 }
 
-  async function submitSurvey(){
+async function submitSurvey(){
   const payload = buildPayload();
 
   try {
-    await fetch('https://script.google.com/macros/s/AKfycbwAPnaRG27N_25KCq4BgKHBpNWVF97bA1D8MU3iiTx9WuZmoJBvOkzciAjtxkVUP9zd/exec', {
+    await fetch(ENDPOINT, {
       method: 'POST',
-      mode: 'no-cors',          // ← add this
+      mode: 'no-cors',
       body: JSON.stringify(payload)
-      // ← remove the headers block entirely
     });
   } catch(e){ console.error('submit failed', e); }
 
-  // localStorage fallback stays as-is
+  // localStorage fallback
   try {
     const all = JSON.parse(localStorage.getItem('glycles_responses') || '[]');
     all.push(payload);
     localStorage.setItem('glycles_responses', JSON.stringify(all));
   } catch(e){}
 
+  showSuccessWithId(payload.response_id);
+}
+
+function showSuccessWithId(responseId){
+  document.getElementById('response-id-display').textContent = responseId;
+  document.getElementById('delete-link').href = ENDPOINT + '?delete_id=' + responseId;
   document.getElementById('card').style.display = 'none';
   document.getElementById('success').style.display = 'block';
   document.getElementById('success').scrollIntoView({behavior:'smooth', block:'center'});
 }
-  
-// async function submitSurvey(){
-//   const payload=buildPayload();
 
-//    //── OPTION A: POST to your endpoint (uncomment + set URL) ──*/
-//    try {
-//      await fetch('https://script.google.com/macros/s/AKfycbwAPnaRG27N_25KCq4BgKHBpNWVF97bA1D8MU3iiTx9WuZmoJBvOkzciAjtxkVUP9zd/exec', {
-//        method:'POST',
-//        headers:{'Content-Type':'application/json'},
-//        body:JSON.stringify(payload)
-//      });
-//    } catch(e){ console.error('submit failed', e); }
-
-//   // ── Fallback: keep locally so nothing is lost in testing ──
-//   try {
-//     const all=JSON.parse(localStorage.getItem('glycles_responses')||'[]');
-//     all.push(payload);
-//     localStorage.setItem('glycles_responses', JSON.stringify(all));
-//   } catch(e){}
-
-//   console.log('Survey response:', payload);
-
-//   document.getElementById('card').style.display='none';
-//   document.getElementById('success').style.display='block';
-//   document.getElementById('success').scrollIntoView({behavior:'smooth',block:'center'});
-// }
+function copyId(){
+  const id = document.getElementById('response-id-display').textContent;
+  navigator.clipboard.writeText(id).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = L(T.copyDone);
+    setTimeout(() => { btn.textContent = L(T.copyBtn); }, 1800);
+  });
+}
 
 // init
 paintStatic();
