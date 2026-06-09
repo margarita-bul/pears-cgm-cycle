@@ -187,7 +187,7 @@ const T = {
   introP:{
     en:'A few minutes, anonymous. Your answers shape which features we build — and whether you fit the test phase.',
     de:'Wenige Minuten, anonym. Deine Antworten bestimmen, welche Funktionen wir bauen — und ob du zur Testphase passt.',
-    ru:'Несколько минут, анонимно. Твои ответы определят, какие функции мы создадим — и подходишь ли ты для тест-фазы.'
+    ru:'Несколько минут, анонимно. Ваши ответы определят, какие функции мы создадим — и подходите ли Вы для тестовой фазы.'
   },
   step:{en:'Step',de:'Schritt',ru:'Шаг'},
   of:{en:'of',de:'von',ru:'из'},
@@ -208,7 +208,7 @@ const T = {
   idBlockLabel:{
     en:'Save this ID if you ever want to delete your response (GDPR right to erasure):',
     de:'Speichere diese ID, falls du deine Antwort später löschen möchtest (DSGVO-Recht auf Löschung):',
-    ru:'Сохрани этот ID, если захочешь удалить свой ответ (право на удаление по GDPR):'
+    ru:'Сохраните этот ID, если захотите удалить свой ответ (право на удаление по GDPR):'
   },
   copyBtn:{en:'Copy',de:'Kopieren',ru:'Копировать'},
   copyDone:{en:'Copied ✓',de:'Kopiert ✓',ru:'Скопировано ✓'},
@@ -220,7 +220,7 @@ const T = {
   disclaimer:{
     en:'We process the data you provide solely to evaluate demand and design our product, in line with GDPR. Answers are stored anonymously; providing contact details is optional. You may withdraw at any time by using the deletion link shown after submission. This is not a medical device and not medical advice.',
     de:'Wir verarbeiten deine Angaben ausschließlich zur Bewertung der Nachfrage und Produktgestaltung, gemäß DSGVO. Antworten werden anonym gespeichert; die Angabe von Kontaktdaten ist freiwillig. Du kannst jederzeit über den nach dem Absenden angezeigten Lösch-Link widerrufen. Dies ist kein Medizinprodukt und keine medizinische Beratung.',
-    ru:'Мы обрабатываем Ваши данные исключительно для оценки спроса и разработки продукта, в соответствии с GDPR. Ответы хранятся анонимно; указание контактов необязательно. Вы можете отозвать согласие в любой момент с помощью ссылки удаления, показанной после отправки. Это не медицинское изделие и не медицинская рекомендация.'
+    ru:'Мы обрабатываем Ваши данные исключительно для оценки спроса и разработки продукта, в соответствии с GDPR. Ответы хранятся анонимно; указание контактов необязательно. Вы можете отозвать согласие в любой момент с помощью ссылки удаления. Не медицинское изделие и не медицинская рекомендация.'
   },
 };
 
@@ -228,7 +228,7 @@ const SLIDER_LABELS = {
   intensity:{
     en:['None','Barely','Mild','A bit bothersome','Noticeable','Manageable','Clear','Strong','Very strong','Severe','Extreme'],
     de:['Keine','Kaum','Leicht','Etwas lästig','Merklich','Handhabbar','Deutlich','Stark','Sehr stark','Schwer','Extrem'],
-    ru:['Нет','Едва','Слабо','Немного мешает','Заметно','Терпимо','Чётко','Сильно','Очень сильно','Тяжело','Невыносимо']
+    ru:['Нет','Едва','Слабо','Немного мешает','Заметно','Терпимо','Определенно','Сильно','Очень сильно','Тяжело','Невыносимо']
   },
   diff:{
     en:['No difference','Barely','Very slight','Slight','Somewhat','Clear','Very clear','Strongly different','Completely','Almost foreign','Like two people'],
@@ -245,8 +245,9 @@ const SURVEY = [
       grid:true,
       options:[
         {v:'18-24',l:{en:'18–24',de:'18–24',ru:'18–24'}},
-        {v:'25-34',l:{en:'25–34',de:'25–34',ru:'25–34'}},
-        {v:'35-44',l:{en:'35–44',de:'35–44',ru:'35–44'}},
+        {v:'25-30',l:{en:'25–30',de:'25–30',ru:'25–30'}},
+        {v:'31-36',l:{en:'31–36',de:'31–36',ru:'31–36'}},
+        {v:'37-44',l:{en:'37–44',de:'37–44',ru:'37–44'}},
         {v:'45-54',l:{en:'45–54',de:'45–54',ru:'45–54'}},
         {v:'55+',l:{en:'55+',de:'55+',ru:'55+'}},
       ]},
@@ -274,25 +275,26 @@ const SURVEY = [
 
   { title:{en:'Health',de:'Gesundheit',ru:'Здоровье'}, questions:[
     { id:'horm', type:'single', required:true, grid:true,
-      label:{en:'Do you use hormonal contraception?',de:'Nimmst du hormonelle Verhütung?',ru:'Используешь гормональную контрацепцию?'},
+      label:{en:'Do you use hormonal contraception?',de:'Nimmst du hormonelle Verhütung?',ru:'Используете ли Вы гормональную контрацепцию?'},
       options:[
         {v:'no',l:{en:'No',de:'Nein',ru:'Нет'}},
-        {v:'pill',l:{en:'Combined pill',de:'Kombi-Pille',ru:'Комбинированные таблетки'}},
+        {v:'pill',l:{en:'Combined pill',de:'Kombi-Pille',ru:'Комбинированные таблетки (КОК)'}},
         {v:'minipill',l:{en:'Mini pill (progestogen)',de:'Minipille (Gestagen)',ru:'Мини-пили (прогестин)'}},
-        {v:'iud',l:{en:'Hormonal IUD',de:'Hormonspirale',ru:'Гормональная спираль'}},
+        {v:'iud',l:{en:'Hormonal IUD',de:'Hormonspirale',ru:'Внутриматочная спираль'}},
         {v:'ring',l:{en:'Vaginal ring',de:'Vaginalring',ru:'Вагинальное кольцо'}},
         {v:'patch',l:{en:'Patch',de:'Verhütungspflaster',ru:'Пластырь'}},
-        {v:'injection',l:{en:'Injection',de:'Dreimonatsspritze',ru:'Инъекция (укол)'}},
-        {v:'implant',l:{en:'Implant',de:'Hormonimplantat',ru:'Имплант'}},
+        {v:'injection',l:{en:'Injection',de:'Dreimonatsspritze',ru:'Инъекции'}},
+        {v:'implant',l:{en:'Implant',de:'Hormonimplantat',ru:'Имплантат'}},
         {v:'other',l:{en:'Other',de:'Anderes',ru:'Другое'}},
       ]},
     { id:'diabetes', type:'single', required:true,
-      label:{en:'Do you have diabetes or prediabetes?',de:'Hast du Diabetes oder Prädiabetes?',ru:'Есть ли у тебя диабет или преддиабет?'},
+      label:{en:'Do you have diabetes or prediabetes?',de:'Hast du Diabetes oder Prädiabetes?',ru:'Есть ли у Вас диабет или преддиабет?'},
       options:[
         {v:'no',l:{en:'No',de:'Nein',ru:'Нет'}},
         {v:'pre',l:{en:'Prediabetes',de:'Prädiabetes',ru:'Преддиабет'}},
         {v:'t1',l:{en:'Type 1 diabetes',de:'Typ-1-Diabetes',ru:'Диабет 1 типа'}},
         {v:'t2',l:{en:'Type 2 diabetes',de:'Typ-2-Diabetes',ru:'Диабет 2 типа'}},
+        {v:'resistance',l:{en:'Insulin resistance',de:'Insulinresistenz',ru:'Инсулинорезистентность'}},
         {v:'unsure',l:{en:'Not sure',de:'Weiß ich nicht',ru:'Не знаю'}},
       ]},
   ]},
@@ -301,32 +303,33 @@ const SURVEY = [
     showIf:{q:'diabetes',v:'t1'},
     questions:[
       { id:'t1_duration', type:'single', required:true,
-        label:{en:'How long have you lived with Type 1?',de:'Wie lange hast du schon Typ 1?',ru:'Как давно у тебя диабет 1 типа?'},
+        label:{en:'How long have you lived with Type 1?',de:'Wie lange hast du schon Typ 1?',ru:'Как давно у Вас диабет 1 типа?'},
         grid:true,
         options:[
-          {v:'<2',l:{en:'Under 2 years',de:'Unter 2 Jahre',ru:'Менее 2 лет'}},
+          {v:'<1',l:{en:'Under 1 year',de:'Unter 1 Jahr',ru:'Менее 1 года'}},
+          {v:'<2',l:{en:'1–2 years',de:'1–2 Jahre',ru:'1-2 года'}},
           {v:'2-5',l:{en:'2–5 years',de:'2–5 Jahre',ru:'2–5 лет'}},
           {v:'5-10',l:{en:'5–10 years',de:'5–10 Jahre',ru:'5–10 лет'}},
           {v:'10+',l:{en:'10+ years',de:'10+ Jahre',ru:'10+ лет'}},
         ]},
       { id:'t1_delivery', type:'single', required:true,
-        label:{en:'How do you take insulin?',de:'Wie nimmst du Insulin?',ru:'Как ты вводишь инсулин?'},
+        label:{en:'How do you take insulin?',de:'Wie nimmst du Insulin?',ru:'Как Вы вводите инсулин?'},
         options:[
           {v:'pump',l:{en:'Insulin pump',de:'Insulinpumpe',ru:'Инсулиновая помпа'}},
-          {v:'pen',l:{en:'Pens / injections (MDI)',de:'Pens / Spritzen (ICT)',ru:'Ручки / инъекции'}},
-          {v:'aid',l:{en:'Automated / closed-loop system',de:'Automatisiertes / Closed-Loop-System',ru:'Автоматическая система (петля)'}},
+          {v:'pen',l:{en:'Pens / injections (MDI)',de:'Pens / Spritzen (ICT)',ru:'Шприц-ручка'}},
+          {v:'aid',l:{en:'Automated / closed-loop system',de:'Automatisiertes / Closed-Loop-System',ru:'Автоматическая система'}},
           {v:'other',l:{en:'Other',de:'Anderes',ru:'Другое'}},
         ]},
       { id:'t1_monitor', type:'single', required:true,
-        label:{en:'How do you monitor your glucose overall?',de:'Wie misst du deinen Blutzucker insgesamt?',ru:'Как ты в целом следишь за глюкозой?'},
+        label:{en:'How do you monitor your glucose overall?',de:'Wie misst du deinen Blutzucker insgesamt?',ru:'Как Вы в целом следите за глюкозой?'},
         options:[
-          {v:'cgm',l:{en:'CGM / sensor (continuous)',de:'CGM / Sensor (kontinuierlich)',ru:'CGM / сенсор (непрерывно)'}},
+          {v:'cgm',l:{en:'CGM / sensor (continuous)',de:'CGM / Sensor (kontinuierlich)',ru:'CGM / сенсор (непрерывное отслеживание)'}},
           {v:'bgm',l:{en:'Fingerprick / glucose meter',de:'Fingerstich / Messgerät',ru:'Прокол пальца / глюкометр'}},
           {v:'both',l:{en:'Both',de:'Beides',ru:'И то, и другое'}},
           {v:'none',l:{en:'Neither',de:'Gar nicht',ru:'Никак'}},
         ]},
       { id:'t1_sensor', type:'single', required:true, grid:true, allowOther:true,
-        label:{en:'Which CGM sensor do you use?',de:'Welchen CGM-Sensor nutzt du?',ru:'Какой CGM-сенсор ты используешь?'},
+        label:{en:'Which CGM sensor do you use?',de:'Welchen CGM-Sensor nutzt du?',ru:'Какой CGM-сенсор Вы используете?'},
         options:[
           {v:'libre2',l:{en:'FreeStyle Libre 2',de:'FreeStyle Libre 2',ru:'FreeStyle Libre 2'}},
           {v:'libre3',l:{en:'FreeStyle Libre 3',de:'FreeStyle Libre 3',ru:'FreeStyle Libre 3'}},
@@ -334,6 +337,7 @@ const SURVEY = [
           {v:'dexg7',l:{en:'Dexcom G7',de:'Dexcom G7',ru:'Dexcom G7'}},
           {v:'medtronic',l:{en:'Medtronic Guardian',de:'Medtronic Guardian',ru:'Medtronic Guardian'}},
           {v:'eversense',l:{en:'Eversense',de:'Eversense',ru:'Eversense'}},
+          {v:'other',l:{en:'Other',de:'Anderes',ru:'Другое'}},
           {v:'nocgm',l:{en:'No CGM',de:'Kein CGM',ru:'Нет CGM'}},
         ]},
       { id:'t1_notice', type:'single', required:true,
@@ -355,7 +359,7 @@ const SURVEY = [
           {v:'unsure',l:{en:'Not sure',de:'Unsicher',ru:'Не уверена'}},
         ]},
       { id:'t1_adjust', type:'single', required:true,
-        label:{en:'Do you currently adjust insulin based on your cycle?',de:'Passt du dein Insulin aktuell an deinen Zyklus an?',ru:'Корректируешь ли ты инсулин с учётом цикла сейчас?'},
+        label:{en:'Do you currently adjust insulin based on your cycle?',de:'Passt du dein Insulin aktuell an deinen Zyklus an?',ru:'Корректируете ли Вы инсулин с учётом цикла сейчас?'},
         options:[
           {v:'conscious',l:{en:'Yes, consciously',de:'Ja, bewusst',ru:'Да, осознанно'}},
           {v:'intuitive',l:{en:'Intuitively, not systematically',de:'Intuitiv, nicht systematisch',ru:'Интуитивно, не системно'}},
@@ -368,16 +372,16 @@ const SURVEY = [
 
   { title:{en:'Your cycle',de:'Dein Zyklus',ru:'Твой цикл'}, questions:[
     { id:'condition', type:'multi', required:true, allowOther:true,
-      label:{en:'What describes your cycle?',de:'Was beschreibt deinen Zyklus?',ru:'Что описывает твой цикл?'},
+      label:{en:'What describes your cycle?',de:'Was beschreibt deinen Zyklus?',ru:'Что описывает Ваш цикл?'},
       options:[
         {v:'regular',l:{en:'Regular (21–35 days)',de:'Regelmäßig (21–35 Tage)',ru:'Регулярный (21–35 дней)'}},
-        {v:'pcos',l:{en:'PCOS or suspected',de:'PCOS oder Verdacht',ru:'СПКЯ или подозрение'}},
+        {v:'pcos',l:{en:'PCOS (PMOS) or suspected',de:'PCOS (PMOS) oder Verdacht',ru:'СПКЯ (ПМОС / ПМОЯ) или подозрение'}},
         {v:'endo',l:{en:'Endometriosis or suspected',de:'Endometriose oder Verdacht',ru:'Эндометриоз или подозрение'}},
-        {v:'peri',l:{en:'Perimenopause / transition',de:'Perimenopause / Übergang',ru:'Перименопауза / переход'}},
+        {v:'peri',l:{en:'Perimenopause / transition',de:'Perimenopause / Übergang',ru:'Перименопауза'}},
         {v:'irregular',l:{en:'Irregular / unsure',de:'Unregelmäßig / unsicher',ru:'Нерегулярный / не знаю'}},
       ]},
     { id:'symptoms', type:'multi', required:true, allowOther:true,
-      label:{en:'Which symptoms do you experience?',de:'Welche Beschwerden hast du?',ru:'Какие симптомы у тебя есть?'},
+      label:{en:'Which symptoms do you experience?',de:'Welche Beschwerden hast du?',ru:'Какие симптомы у Вас наблюдаются?'},
       grid:true,
       options:[
         {v:'pain',l:{en:'Pain / cramps',de:'Schmerzen / Krämpfe',ru:'Боль / спазмы'}},
@@ -400,21 +404,21 @@ const SURVEY = [
       label:{en:'How strong are sweet cravings before your period?',de:'Wie stark ist Heißhunger auf Süßes vor der Periode?',ru:'Насколько сильна тяга к сладкому перед месячными?'},
       ends:{en:['None','Very strong'],de:['Keine','Sehr stark'],ru:['Нет','Очень сильно']}},
     { id:'fatigue_meal', type:'slider', required:true, sliderType:'intensity',
-      label:{en:'How tired are you after eating?',de:'Wie müde bist du nach dem Essen?',ru:'Насколько ты устаёшь после еды?'},
+      label:{en:'How tired are you after eating?',de:'Wie müde bist du nach dem Essen?',ru:'Насколько заметна усталость после еды?'},
       ends:{en:['Not at all','Extremely'],de:['Gar nicht','Extrem'],ru:['Совсем нет','Очень сильно']}},
   ]},
 
   { title:{en:'Phase awareness',de:'Zykluswahrnehmung',ru:'Восприятие фаз'}, questions:[
     { id:'changes', type:'multi', required:true, allowOther:true,
-      label:{en:'What changes for you across phases?',de:'Was verändert sich je nach Phase?',ru:'Что меняется у тебя по фазам?'},
+      label:{en:'What changes for you across phases?',de:'Was verändert sich je nach Phase?',ru:'Что меняется у Вас по фазам цикла?'},
       grid:true,
       options:[
         {v:'energy',l:{en:'Energy',de:'Energie',ru:'Энергия'}},
         {v:'mood',l:{en:'Mood',de:'Stimmung',ru:'Настроение'}},
         {v:'sleep',l:{en:'Sleep',de:'Schlaf',ru:'Сон'}},
         {v:'focus',l:{en:'Focus',de:'Konzentration',ru:'Концентрация'}},
-        {v:'hunger',l:{en:'Hunger / cravings',de:'Hunger / Heißhunger',ru:'Голод / тяга'}},
-        {v:'sport',l:{en:'Sport performance',de:'Sportliche Leistung',ru:'Спорт. результаты'}},
+        {v:'hunger',l:{en:'Hunger / cravings',de:'Hunger / Heißhunger',ru:'Голод / тяга к еде'}},
+        {v:'sport',l:{en:'Sport performance',de:'Sportliche Leistung',ru:'Спортивные результаты'}},
         {v:'digest',l:{en:'Digestion',de:'Verdauung',ru:'Пищеварение'}},
         {v:'weight',l:{en:'Weight / water',de:'Gewicht / Wasser',ru:'Вес / отёки'}},
       ]},
@@ -425,7 +429,7 @@ const SURVEY = [
 
   { title:{en:'Activity',de:'Aktivität',ru:'Активность'}, questions:[
     { id:'activity', type:'single', required:true,
-      label:{en:'How active are you?',de:'Wie aktiv bist du?',ru:'Насколько ты активна?'},
+      label:{en:'How active are you?',de:'Wie aktiv bist du?',ru:'Насколько Вы активны?'},
       options:[
         {v:'low',l:{en:'Mostly sitting',de:'Hauptsächlich sitzend',ru:'В основном сидячий образ'}},
         {v:'light',l:{en:'Light — 1–2× sport / week',de:'Leicht — 1–2× Sport / Woche',ru:'Лёгкая — 1–2× спорт / нед.'}},
@@ -433,7 +437,7 @@ const SURVEY = [
         {v:'high',l:{en:'Very active — daily',de:'Sehr aktiv — täglich',ru:'Очень активная — ежедневно'}},
       ]},
     { id:'tracking', type:'multi', required:true, allowOther:true,
-      label:{en:'What do you already track?',de:'Was trackst du bereits?',ru:'Что ты уже отслеживаешь?'},
+      label:{en:'What do you already track?',de:'Was trackst du bereits?',ru:'Что Вы уже отслеживаете?'},
       grid:true,
       options:[
         {v:'steps',l:{en:'Steps / activity',de:'Schritte / Aktivität',ru:'Шаги / активность'}},
@@ -444,7 +448,7 @@ const SURVEY = [
         {v:'nothing',l:{en:'Nothing',de:'Nichts',ru:'Ничего'}},
       ]},
     { id:'period_app', type:'multi', required:false, allowOther:true,
-      label:{en:'Which app do you use for period tracking?',de:'Welche App nutzt du zur Zyklus-Verfolgung?',ru:'Какое приложение для отслеживания цикла ты используешь?'},
+      label:{en:'Which app do you use for period tracking?',de:'Welche App nutzt du zur Zyklus-Verfolgung?',ru:'Какое приложение для отслеживания цикла Вы используете?'},
       grid:true,
       options:[
         {v:'clue',l:{en:'Clue',de:'Clue',ru:'Clue'}},
@@ -457,9 +461,9 @@ const SURVEY = [
       ]},
   ]},
 
-  { title:{en:'What you would use',de:'Was du nutzen würdest',ru:'Что бы ты использовала'}, questions:[
+  { title:{en:'What you would use',de:'Was du nutzen würdest',ru:'Что бы Вы использовали'}, questions:[
     { id:'features', type:'multi', required:true, allowOther:true,
-      label:{en:'Which analyses interest you most?',de:'Welche Analysen interessieren dich?',ru:'Какие анализы тебе интересны?'},
+      label:{en:'Which analyses interest you most?',de:'Welche Analysen interessieren dich?',ru:'Какие типы анализа данных Вам интересны?'},
       options:[
         {v:'phase',l:{en:'Glucose by cycle phase',de:'Glukose pro Zyklusphase',ru:'Глюкоза по фазам цикла'}},
         {v:'fasting',l:{en:'6 AM fasting value per phase',de:'Nüchternwert (6 Uhr) je Phase',ru:'Значение натощак (6 утра) по фазам'}},
@@ -470,7 +474,7 @@ const SURVEY = [
         {v:'ai',l:{en:'AI explanations',de:'KI-Erklärungen',ru:'AI-объяснения'}},
       ]},
     { id:'pay', type:'single', required:true,
-      label:{en:'Would you pay for this app?',de:'Würdest du für die App zahlen?',ru:'Готова ли ты платить за приложение?'},
+      label:{en:'Would you pay for this app?',de:'Würdest du für die App zahlen?',ru:'Готовы ли Вы платить за приложение?'},
       options:[
         {v:'free',l:{en:'Only if free',de:'Nur kostenlos',ru:'Только если бесплатно'}},
         {v:'5',l:{en:'Up to €5 / month',de:'Bis €5 / Monat',ru:'До €5 / мес.'}},
@@ -481,18 +485,18 @@ const SURVEY = [
 
   { title:{en:'Almost done',de:'Fast fertig',ru:'Почти готово'}, questions:[
     { id:'interested', type:'single', required:true,
-      label:{en:'Do you want to take part?',de:'Möchtest du mitmachen?',ru:'Хочешь принять участие?'},
+      label:{en:'Do you want to take part?',de:'Möchtest du mitmachen?',ru:'Хотите принять участие в тестировании?'},
       options:[
         {v:'yes',l:{en:'Yes — I want to test the free sensor',de:'Ja — ich will den kostenlosen Sensor testen',ru:'Да — хочу протестировать бесплатный сенсор'}},
         {v:'maybe',l:{en:'Interested — tell me more',de:'Interessiert — erzählt mir mehr',ru:'Интересно — расскажите подробнее'}},
         {v:'app',l:{en:'Just the app, no sensor needed',de:'Nur die App, kein Sensor',ru:'Только приложение, без сенсора'}},
       ]},
     { id:'email', type:'text', required:false, inputType:'email',
-      label:{en:'Your email',de:'Deine E-Mail',ru:'Твой email'},
+      label:{en:'Your email',de:'Deine E-Mail',ru:'Ваш email'},
       placeholder:{en:'hello@example.com',de:'hallo@beispiel.de',ru:'hello@example.com'}},
     { id:'open', type:'textarea', required:false,
-      label:{en:'What would you like to find out about your body?',de:'Was möchtest du über deinen Körper herausfinden?',ru:'Что бы ты хотела узнать о своём теле?'},
-      placeholder:{en:'Write freely…',de:'Frei schreiben…',ru:'Пиши свободно…'}},
+      label:{en:'What would you like to find out about your body?',de:'Was möchtest du über deinen Körper herausfinden?',ru:'Что бы Вы хотели узнать о своём теле?'},
+      placeholder:{en:'…',de:'…',ru:'…'}},
     { id:'consent', type:'consent', required:true,
       label:{
         en:'I agree that my answers may be processed anonymously to evaluate and develop this product (GDPR).',
