@@ -166,7 +166,7 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
         <span class="id-code" id="response-id-display"></span>
         <button class="btn-copy" id="copy-btn" onclick="copyId()"></button>
       </div>
-      <a class="delete-link" id="delete-link" href="#" target="_blank" id="delete-link"></a>
+      <a class="delete-link" id="delete-link" href="#" target="_blank"></a>
     </div>
   </div>
 </div>
@@ -174,14 +174,8 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
 <div class="disclaimer" id="disclaimer"></div>
 
 <script>
-/* ═══════════════════════════════════════════════════════════
-   ENDPOINT — your Google Apps Script Web App URL
-═══════════════════════════════════════════════════════════ */
 const ENDPOINT = 'https://script.google.com/macros/s/AKfycbwAPnaRG27N_25KCq4BgKHBpNWVF97bA1D8MU3iiTx9WuZmoJBvOkzciAjtxkVUP9zd/exec';
 
-/* ═══════════════════════════════════════════════════════════
-   i18n
-═══════════════════════════════════════════════════════════ */
 const T = {
   introH:{en:['Help shape ','Glycles.'],de:['Hilf uns, ','Glycles zu bauen.'],ru:['Помоги создать ','Glycles.']},
   introP:{
@@ -237,7 +231,6 @@ const SLIDER_LABELS = {
   }
 };
 
-/* ── Survey definition ── */
 const SURVEY = [
   { title:{en:'About you',de:'Über dich',ru:'О Вас'}, questions:[
     { id:'age', type:'single', required:true,
@@ -270,6 +263,14 @@ const SURVEY = [
         {v:'w3540',l:{en:'Work 35–40h / week',de:'Arbeit 35–40 Std./Woche',ru:'Работа 35–40ч/нед'}},
         {v:'w40',l:{en:'More than 40h / week',de:'Mehr als 40 Std./Woche',ru:'Более 40ч/нед'}},
         {v:'none',l:{en:'None of the above',de:'Nichts davon',ru:'Ничего из перечисленного'}},
+      ]},
+    { id:'smartphone', type:'single', required:true,
+      label:{en:'Which smartphone do you use?',de:'Welches Smartphone nutzt du?',ru:'Каким смартфоном Вы пользуетесь?'},
+      grid:true,
+      options:[
+        {v:'ios',l:{en:'iPhone (iOS)',de:'iPhone (iOS)',ru:'iPhone (iOS)'}},
+        {v:'android',l:{en:'Android',de:'Android',ru:'Android'}},
+        {v:'other',l:{en:'Other / none',de:'Anderes / keins',ru:'Другое / нет'}},
       ]},
   ]},
 
@@ -422,9 +423,6 @@ const SURVEY = [
         {v:'digest',l:{en:'Digestion',de:'Verdauung',ru:'Пищеварение'}},
         {v:'weight',l:{en:'Weight / water',de:'Gewicht / Wasser',ru:'Вес / отёки'}},
       ]},
-    { id:'phasediff', type:'slider', required:true, sliderType:'diff',
-      label:{en:'How different do your phases feel overall?',de:'Wie unterschiedlich fühlen sich deine Phasen an?',ru:'Насколько по-разному ощущаются фазы?'},
-      ends:{en:['No difference','Like two people'],de:['Kein Unterschied','Wie zwei Menschen'],ru:['Без разницы','Как два человека']}},
   ]},
 
   { title:{en:'Activity',de:'Aktivität',ru:'Активность'}, questions:[
@@ -506,9 +504,6 @@ const SURVEY = [
   ]},
 ];
 
-/* ═══════════════════════════════════════════════════════════
-   ENGINE
-═══════════════════════════════════════════════════════════ */
 let lang = 'de';
 let stepIdx = 0;
 const answers = {};
@@ -674,7 +669,6 @@ document.getElementById('btn-back').onclick = () => {
   if(stepIdx > 0){ stepIdx--; render(); document.getElementById('card').scrollIntoView({behavior:'smooth', block:'start'}); }
 };
 
-/* ── Language switch ── */
 document.getElementById('lang').addEventListener('click', e => {
   if(e.target.tagName !== 'BUTTON') return;
   lang = e.target.dataset.l;
@@ -695,7 +689,6 @@ function paintStatic(){
   document.getElementById('delete-link').textContent = L(T.deleteLink);
 }
 
-/* ── Submit ── */
 function buildPayload(){
   return {
     response_id: 'r_' + Math.random().toString(36).slice(2) + Date.now().toString(36),
@@ -707,7 +700,6 @@ function buildPayload(){
 
 async function submitSurvey(){
   const payload = buildPayload();
-
   try {
     await fetch(ENDPOINT, {
       method: 'POST',
@@ -715,14 +707,11 @@ async function submitSurvey(){
       body: JSON.stringify(payload)
     });
   } catch(e){ console.error('submit failed', e); }
-
-  // localStorage fallback
   try {
     const all = JSON.parse(localStorage.getItem('glycles_responses') || '[]');
     all.push(payload);
     localStorage.setItem('glycles_responses', JSON.stringify(all));
   } catch(e){}
-
   showSuccessWithId(payload.response_id);
 }
 
@@ -743,7 +732,6 @@ function copyId(){
   });
 }
 
-// init
 paintStatic();
 render();
 </script>
