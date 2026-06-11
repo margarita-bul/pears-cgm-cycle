@@ -177,12 +177,16 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
 const ENDPOINT = 'https://script.google.com/macros/s/AKfycbwAPnaRG27N_25KCq4BgKHBpNWVF97bA1D8MU3iiTx9WuZmoJBvOkzciAjtxkVUP9zd/exec';
 
 const T = {
-  introH:{en:['Help shape ','Glycles.'],de:['Hilf uns, ','Glycles zu bauen.'],ru:['Помоги создать ','Glycles.']},
-  introP:{
-    en:'A few minutes, anonymous. Your answers shape which features we build — and whether you fit the test phase.',
-    de:'Wenige Minuten, anonym. Deine Antworten bestimmen, welche Funktionen wir bauen — und ob du zur Testphase passt.',
-    ru:'Несколько минут, анонимно. Ваши ответы определят, какие функции мы создадим — и подходите ли Вы для тестовой фазы.'
-  },
+  header: {
+  en: 'Your Cycle. Your Glucose. Your Input.',
+  de: 'Dein Zyklus. Deine Glukose. Deine Meinung.',
+  ru: 'Твой цикл. Твоя глюкоза. Твоё мнение.'
+},
+introP: {
+  en: 'Living with a condition that affects your blood sugar is already complex — add a menstrual cycle to the picture, and the patterns get even harder to read. We\'re building an app to help track how glucose levels shift across cycle phases. Before we write a single line of code, we want to understand your real experience. This survey takes a few minutes, is completely anonymous, and directly shapes what we build. If you\'d like to help us test it, you can leave your email at the end — no obligation.',
+  de: 'Mit einer Erkrankung zu leben, die den Blutzucker beeinflusst, ist bereits komplex — der Menstruationszyklus macht die Muster noch schwerer lesbar. Wir entwickeln eine App, die hilft, Glukoseveränderungen über die Zyklusphasen hinweg zu verfolgen. Bevor wir eine einzige Zeile Code schreiben, wollen wir deine echten Erfahrungen verstehen. Die Umfrage dauert wenige Minuten, ist vollständig anonym und beeinflusst direkt, was wir bauen. Wenn du beim Testen helfen möchtest, kannst du am Ende deine E-Mail hinterlassen — freiwillig.',
+  ru: 'Жить с заболеванием, влияющим на уровень сахара в крови, уже непросто — а менструальный цикл делает картину ещё сложнее. Мы создаём приложение, которое поможет отслеживать изменения уровня глюкозы в разных фазах цикла. Прежде чем написать хоть строчку кода, мы хотим понять ваш реальный опыт. Опрос займёт несколько минут, полностью анонимен и напрямую влияет на то, что мы создадим. Если вы хотите помочь с тестированием — можете оставить email в конце, это необязательно.'
+},
   step:{en:'Step',de:'Schritt',ru:'Шаг'},
   of:{en:'of',de:'von',ru:'из'},
   back:{en:'← Back',de:'← Zurück',ru:'← Назад'},
