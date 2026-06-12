@@ -99,7 +99,6 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
 .btn-next{font-family:'Outfit',sans-serif;font-size:.86rem;font-weight:700;padding:.72rem 1.85rem;border-radius:100px;background:var(--red);color:#fff;border:none;cursor:pointer;transition:.15s;letter-spacing:.02em}
 .btn-next:hover{background:var(--red2)}
 
-/* Success screen */
 .success{display:none;text-align:center;padding:3rem 2rem 2.5rem}
 .success-ic{width:64px;height:64px;border-radius:50%;background:rgba(170,10,40,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;font-size:1.5rem;color:var(--red)}
 .success h2{font-family:'Outfit',sans-serif;font-size:1.9rem;font-weight:900;color:var(--ink);margin-bottom:.75rem;letter-spacing:-.02em}
@@ -177,17 +176,16 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
 const ENDPOINT = 'https://script.google.com/macros/s/AKfycbwAPnaRG27N_25KCq4BgKHBpNWVF97bA1D8MU3iiTx9WuZmoJBvOkzciAjtxkVUP9zd/exec';
 
 const T = {
-introH: {
-  en: ['Your Cycle. Your Glucose. ','Your Input.'],
-  de: ['Dein Zyklus. Deine Glukose. ','Deine Meinung.'],
-  ru: ['Твой цикл. Твоя глюкоза. ','Твоё мнение.']
-},
-  // introH:{en:['Your Cycle. ','Your Glucose.', 'Your Input.'],de:['Hilf uns, ','Glycles zu bauen.'],ru:['Помоги создать ','Glycles.']},
-introP: {
-  en: 'Living with a condition that affects your blood sugar is already complex — add a menstrual cycle to the picture, and the patterns get even harder to read. We\'re building an app to help track how glucose levels shift across cycle phases. Before we write a single line of code, we want to understand your real experience. This survey takes a few minutes, is completely anonymous, and directly shapes what we build. If you\'d like to help us test it, you can leave your email at the end — no obligation.',
-  de: 'Mit einer Erkrankung zu leben, die den Blutzucker beeinflusst, ist bereits komplex — der Menstruationszyklus macht die Muster noch schwerer lesbar. Wir entwickeln eine App, die hilft, Glukoseveränderungen über die Zyklusphasen hinweg zu verfolgen. Bevor wir eine einzige Zeile Code schreiben, wollen wir deine echten Erfahrungen verstehen. Die Umfrage dauert wenige Minuten, ist vollständig anonym und beeinflusst direkt, was wir bauen. Wenn du beim Testen helfen möchtest, kannst du am Ende deine E-Mail hinterlassen — freiwillig.',
-  ru: 'Жить с заболеванием, влияющим на уровень сахара в крови, уже непросто — а менструальный цикл делает картину ещё сложнее. Мы создаём приложение, которое поможет отслеживать изменения уровня глюкозы в разных фазах цикла. Прежде чем написать хоть строчку кода, мы хотим понять ваш реальный опыт. Опрос займёт несколько минут, полностью анонимен и напрямую влияет на то, что мы создадим. Если вы хотите помочь с тестированием — можете оставить email в конце, это необязательно.'
-},
+  introH:{
+    en:['Your Cycle. Your Glucose. ','Your Input.'],
+    de:['Dein Zyklus. Deine Glukose. ','Deine Meinung.'],
+    ru:['Твой цикл. Твоя глюкоза. ','Твоё мнение.']
+  },
+  introP:{
+    en:'Living with a condition that affects your blood sugar is already complex — add a menstrual cycle to the picture, and the patterns get even harder to read. We\'re building an app to help track how glucose levels shift across cycle phases. Before we write a single line of code, we want to understand your real experience. This survey takes a few minutes, is completely anonymous, and directly shapes what we build. If you\'d like to help us test it, you can leave your email at the end — no obligation.',
+    de:'Mit einer Erkrankung zu leben, die den Blutzucker beeinflusst, ist bereits komplex — der Menstruationszyklus macht die Muster noch schwerer lesbar. Wir entwickeln eine App, die hilft, Glukoseveränderungen über die Zyklusphasen hinweg zu verfolgen. Bevor wir eine einzige Zeile Code schreiben, wollen wir deine echten Erfahrungen verstehen. Die Umfrage dauert wenige Minuten, ist vollständig anonym und beeinflusst direkt, was wir bauen. Wenn du beim Testen helfen möchtest, kannst du am Ende deine E-Mail hinterlassen — freiwillig.',
+    ru:'Жить с заболеванием, влияющим на уровень сахара в крови, уже непросто — а менструальный цикл делает картину ещё сложнее. Мы создаём приложение, которое поможет отслеживать изменения уровня глюкозы в разных фазах цикла. Прежде чем написать хоть строчку кода, мы хотим понять ваш реальный опыт. Опрос займёт несколько минут, полностью анонимен и напрямую влияет на то, что мы создадим. Если вы хотите помочь с тестированием — можете оставить email в конце, это необязательно.'
+  },
   step:{en:'Step',de:'Schritt',ru:'Шаг'},
   of:{en:'of',de:'von',ru:'из'},
   back:{en:'← Back',de:'← Zurück',ru:'← Назад'},
@@ -235,6 +233,78 @@ const SLIDER_LABELS = {
     ru:['Разницы нет','Едва','Очень слабо','Слабо','Немного','Чётко','Очень чётко','Сильно по-разному','Полностью','Абсолютно','Как два разных человека']
   }
 };
+
+// ── Shared insulin-related question blocks (reused for T1 and T2-insulin) ──
+function insulinQuestions(prefix) {
+  return [
+    { id:prefix+'_duration', type:'single', required:true,
+      label:{en:'How long have you lived with this condition?',de:'Wie lange lebst du schon damit?',ru:'Как давно у Вас это заболевание?'},
+      grid:true,
+      options:[
+        {v:'<1',l:{en:'Under 1 year',de:'Unter 1 Jahr',ru:'Менее 1 года'}},
+        {v:'1-2',l:{en:'1–2 years',de:'1–2 Jahre',ru:'1–2 года'}},
+        {v:'2-5',l:{en:'2–5 years',de:'2–5 Jahre',ru:'2–5 лет'}},
+        {v:'5-10',l:{en:'5–10 years',de:'5–10 Jahre',ru:'5–10 лет'}},
+        {v:'10+',l:{en:'10+ years',de:'10+ Jahre',ru:'10+ лет'}},
+      ]},
+    { id:prefix+'_delivery', type:'single', required:true,
+      label:{en:'How do you take insulin?',de:'Wie nimmst du Insulin?',ru:'Как Вы вводите инсулин?'},
+      options:[
+        {v:'pump',l:{en:'Insulin pump',de:'Insulinpumpe',ru:'Инсулиновая помпа'}},
+        {v:'pen',l:{en:'Pens / injections (MDI)',de:'Pens / Spritzen (ICT)',ru:'Шприц-ручка'}},
+        {v:'aid',l:{en:'Automated / closed-loop system',de:'Automatisiertes / Closed-Loop-System',ru:'Автоматическая система'}},
+        {v:'other',l:{en:'Other',de:'Anderes',ru:'Другое'}},
+      ]},
+    { id:prefix+'_monitor', type:'single', required:true,
+      label:{en:'How do you monitor your glucose?',de:'Wie misst du deinen Blutzucker?',ru:'Как Вы следите за глюкозой?'},
+      options:[
+        {v:'cgm',l:{en:'CGM / sensor (continuous)',de:'CGM / Sensor (kontinuierlich)',ru:'CGM / сенсор (непрерывно)'}},
+        {v:'bgm',l:{en:'Fingerprick / glucose meter',de:'Fingerstich / Messgerät',ru:'Прокол пальца / глюкометр'}},
+        {v:'both',l:{en:'Both',de:'Beides',ru:'И то, и другое'}},
+        {v:'none',l:{en:'Neither',de:'Gar nicht',ru:'Никак'}},
+      ]},
+    { id:prefix+'_sensor', type:'single', required:true, grid:true, allowOther:true,
+      label:{en:'Which CGM sensor do you use?',de:'Welchen CGM-Sensor nutzt du?',ru:'Какой CGM-сенсор Вы используете?'},
+      options:[
+        {v:'libre2',l:{en:'FreeStyle Libre 2',de:'FreeStyle Libre 2',ru:'FreeStyle Libre 2'}},
+        {v:'libre3',l:{en:'FreeStyle Libre 3',de:'FreeStyle Libre 3',ru:'FreeStyle Libre 3'}},
+        {v:'dexg6',l:{en:'Dexcom G6',de:'Dexcom G6',ru:'Dexcom G6'}},
+        {v:'dexg7',l:{en:'Dexcom G7',de:'Dexcom G7',ru:'Dexcom G7'}},
+        {v:'medtronic',l:{en:'Medtronic Guardian',de:'Medtronic Guardian',ru:'Medtronic Guardian'}},
+        {v:'eversense',l:{en:'Eversense',de:'Eversense',ru:'Eversense'}},
+        {v:'other',l:{en:'Other',de:'Anderes',ru:'Другое'}},
+        {v:'nocgm',l:{en:'No CGM',de:'Kein CGM',ru:'Нет CGM'}},
+      ]},
+    { id:prefix+'_notice', type:'single', required:true,
+      label:{en:'Do your insulin needs change across your cycle?',de:'Verändert sich dein Insulinbedarf im Zyklus?',ru:'Меняется ли потребность в инсулине в течение цикла?'},
+      options:[
+        {v:'yes-clear',l:{en:'Yes, clearly',de:'Ja, deutlich',ru:'Да, заметно'}},
+        {v:'somewhat',l:{en:'Somewhat',de:'Etwas',ru:'Немного'}},
+        {v:'no',l:{en:'No',de:'Nein',ru:'Нет'}},
+        {v:'never',l:{en:'Never paid attention',de:'Nie darauf geachtet',ru:'Не обращала внимания'}},
+      ]},
+    { id:prefix+'_phase', type:'multi', required:true, allowOther:true,
+      label:{en:'In which phases do you need more insulin?',de:'In welchen Phasen brauchst du mehr Insulin?',ru:'В какие фазы нужно больше инсулина?'},
+      grid:true,
+      options:[
+        {v:'before',l:{en:'Week before period (luteal)',de:'Woche vor der Periode (luteal)',ru:'Неделя перед месячными (лютеиновая)'}},
+        {v:'during',l:{en:'During period',de:'Während der Periode',ru:'Во время месячных'}},
+        {v:'follicular',l:{en:'After period (follicular)',de:'Nach der Periode (follikulär)',ru:'После месячных (фолликулярная)'}},
+        {v:'ovulation',l:{en:'Around ovulation',de:'Um den Eisprung',ru:'Около овуляции'}},
+        {v:'unsure',l:{en:'Not sure',de:'Unsicher',ru:'Не уверена'}},
+      ]},
+    { id:prefix+'_adjust', type:'single', required:true,
+      label:{en:'Do you currently adjust insulin based on your cycle?',de:'Passt du dein Insulin aktuell an deinen Zyklus an?',ru:'Корректируете ли Вы инсулин с учётом цикла?'},
+      options:[
+        {v:'conscious',l:{en:'Yes, consciously',de:'Ja, bewusst',ru:'Да, осознанно'}},
+        {v:'intuitive',l:{en:'Intuitively, not systematically',de:'Intuitiv, nicht systematisch',ru:'Интуитивно, не системно'}},
+        {v:'no',l:{en:'No',de:'Nein',ru:'Нет'}},
+      ]},
+    { id:prefix+'_disrupt', type:'slider', required:true, sliderType:'intensity',
+      label:{en:'How disruptive are cycle-related glucose swings for you?',de:'Wie störend sind zyklusbedingte Glukoseschwankungen?',ru:'Насколько мешают колебания глюкозы, связанные с циклом?'},
+      ends:{en:['Not at all','Very disruptive'],de:['Gar nicht','Sehr störend'],ru:['Совсем нет','Очень мешают']}},
+  ];
+}
 
 const SURVEY = [
   { title:{en:'About you',de:'Über dich',ru:'О Вас'}, questions:[
@@ -300,81 +370,23 @@ const SURVEY = [
         {v:'pre',l:{en:'Prediabetes',de:'Prädiabetes',ru:'Преддиабет'}},
         {v:'t1',l:{en:'Type 1 diabetes',de:'Typ-1-Diabetes',ru:'Диабет 1 типа'}},
         {v:'t2',l:{en:'Type 2 diabetes',de:'Typ-2-Diabetes',ru:'Диабет 2 типа'}},
+        {v:'t2i',l:{en:'Type 2 diabetes (insulin-treated)',de:'Typ-2-Diabetes (insulinpflichtig)',ru:'Диабет 2 типа (на инсулине)'}},
         {v:'resistance',l:{en:'Insulin resistance',de:'Insulinresistenz',ru:'Инсулинорезистентность'}},
         {v:'unsure',l:{en:'Not sure',de:'Weiß ich nicht',ru:'Не знаю'}},
       ]},
   ]},
 
-  { title:{en:'Type 1 & your cycle',de:'Typ 1 & dein Zyklus',ru:'Тип 1 и твой цикл'},
+  // ── Type 1 block ──
+  { title:{en:'Type 1 & your cycle',de:'Typ 1 & dein Zyklus',ru:'Тип 1 и Ваш цикл'},
     showIf:{q:'diabetes',v:'t1'},
-    questions:[
-      { id:'t1_duration', type:'single', required:true,
-        label:{en:'How long have you lived with Type 1?',de:'Wie lange hast du schon Typ 1?',ru:'Как давно у Вас диабет 1 типа?'},
-        grid:true,
-        options:[
-          {v:'<1',l:{en:'Under 1 year',de:'Unter 1 Jahr',ru:'Менее 1 года'}},
-          {v:'<2',l:{en:'1–2 years',de:'1–2 Jahre',ru:'1-2 года'}},
-          {v:'2-5',l:{en:'2–5 years',de:'2–5 Jahre',ru:'2–5 лет'}},
-          {v:'5-10',l:{en:'5–10 years',de:'5–10 Jahre',ru:'5–10 лет'}},
-          {v:'10+',l:{en:'10+ years',de:'10+ Jahre',ru:'10+ лет'}},
-        ]},
-      { id:'t1_delivery', type:'single', required:true,
-        label:{en:'How do you take insulin?',de:'Wie nimmst du Insulin?',ru:'Как Вы вводите инсулин?'},
-        options:[
-          {v:'pump',l:{en:'Insulin pump',de:'Insulinpumpe',ru:'Инсулиновая помпа'}},
-          {v:'pen',l:{en:'Pens / injections (MDI)',de:'Pens / Spritzen (ICT)',ru:'Шприц-ручка'}},
-          {v:'aid',l:{en:'Automated / closed-loop system',de:'Automatisiertes / Closed-Loop-System',ru:'Автоматическая система'}},
-          {v:'other',l:{en:'Other',de:'Anderes',ru:'Другое'}},
-        ]},
-      { id:'t1_monitor', type:'single', required:true,
-        label:{en:'How do you monitor your glucose overall?',de:'Wie misst du deinen Blutzucker insgesamt?',ru:'Как Вы в целом следите за глюкозой?'},
-        options:[
-          {v:'cgm',l:{en:'CGM / sensor (continuous)',de:'CGM / Sensor (kontinuierlich)',ru:'CGM / сенсор (непрерывное отслеживание)'}},
-          {v:'bgm',l:{en:'Fingerprick / glucose meter',de:'Fingerstich / Messgerät',ru:'Прокол пальца / глюкометр'}},
-          {v:'both',l:{en:'Both',de:'Beides',ru:'И то, и другое'}},
-          {v:'none',l:{en:'Neither',de:'Gar nicht',ru:'Никак'}},
-        ]},
-      { id:'t1_sensor', type:'single', required:true, grid:true, allowOther:true,
-        label:{en:'Which CGM sensor do you use?',de:'Welchen CGM-Sensor nutzt du?',ru:'Какой CGM-сенсор Вы используете?'},
-        options:[
-          {v:'libre2',l:{en:'FreeStyle Libre 2',de:'FreeStyle Libre 2',ru:'FreeStyle Libre 2'}},
-          {v:'libre3',l:{en:'FreeStyle Libre 3',de:'FreeStyle Libre 3',ru:'FreeStyle Libre 3'}},
-          {v:'dexg6',l:{en:'Dexcom G6',de:'Dexcom G6',ru:'Dexcom G6'}},
-          {v:'dexg7',l:{en:'Dexcom G7',de:'Dexcom G7',ru:'Dexcom G7'}},
-          {v:'medtronic',l:{en:'Medtronic Guardian',de:'Medtronic Guardian',ru:'Medtronic Guardian'}},
-          {v:'eversense',l:{en:'Eversense',de:'Eversense',ru:'Eversense'}},
-          {v:'other',l:{en:'Other',de:'Anderes',ru:'Другое'}},
-          {v:'nocgm',l:{en:'No CGM',de:'Kein CGM',ru:'Нет CGM'}},
-        ]},
-      { id:'t1_notice', type:'single', required:true,
-        label:{en:'Do your insulin needs change across your cycle?',de:'Verändert sich dein Insulinbedarf im Zyklus?',ru:'Меняется ли потребность в инсулине в течение цикла?'},
-        options:[
-          {v:'yes-clear',l:{en:'Yes, clearly',de:'Ja, deutlich',ru:'Да, заметно'}},
-          {v:'somewhat',l:{en:'Somewhat',de:'Etwas',ru:'Немного'}},
-          {v:'no',l:{en:'No',de:'Nein',ru:'Нет'}},
-          {v:'never',l:{en:'Never paid attention',de:'Nie darauf geachtet',ru:'Не обращала внимания'}},
-        ]},
-      { id:'t1_phase', type:'multi', required:true, allowOther:true,
-        label:{en:'In which phases do you need more insulin?',de:'In welchen Phasen brauchst du mehr Insulin?',ru:'В какие фазы нужно больше инсулина?'},
-        grid:true,
-        options:[
-          {v:'before',l:{en:'Week before period (luteal)',de:'Woche vor der Periode (luteal)',ru:'Неделя перед месячными (лютеиновая)'}},
-          {v:'during',l:{en:'During period',de:'Während der Periode',ru:'Во время месячных'}},
-          {v:'follicular',l:{en:'After period (follicular)',de:'Nach der Periode (follikulär)',ru:'После месячных (фолликулярная)'}},
-          {v:'ovulation',l:{en:'Around ovulation',de:'Um den Eisprung',ru:'Около овуляции'}},
-          {v:'unsure',l:{en:'Not sure',de:'Unsicher',ru:'Не уверена'}},
-        ]},
-      { id:'t1_adjust', type:'single', required:true,
-        label:{en:'Do you currently adjust insulin based on your cycle?',de:'Passt du dein Insulin aktuell an deinen Zyklus an?',ru:'Корректируете ли Вы инсулин с учётом цикла сейчас?'},
-        options:[
-          {v:'conscious',l:{en:'Yes, consciously',de:'Ja, bewusst',ru:'Да, осознанно'}},
-          {v:'intuitive',l:{en:'Intuitively, not systematically',de:'Intuitiv, nicht systematisch',ru:'Интуитивно, не системно'}},
-          {v:'no',l:{en:'No',de:'Nein',ru:'Нет'}},
-        ]},
-      { id:'t1_disrupt', type:'slider', required:true, sliderType:'intensity',
-        label:{en:'How disruptive are cycle-related glucose swings for you?',de:'Wie störend sind zyklusbedingte Glukoseschwankungen?',ru:'Насколько мешают колебания глюкозы, связанные с циклом?'},
-        ends:{en:['Not at all','Very disruptive'],de:['Gar nicht','Sehr störend'],ru:['Совсем нет','Очень мешают']}},
-    ]},
+    questions: insulinQuestions('t1')
+  },
+
+  // ── Type 2 insulin block ──
+  { title:{en:'Type 2 (insulin) & your cycle',de:'Typ 2 (Insulin) & dein Zyklus',ru:'Тип 2 (инсулин) и Ваш цикл'},
+    showIf:{q:'diabetes',v:'t2i'},
+    questions: insulinQuestions('t2i')
+  },
 
   { title:{en:'Your cycle',de:'Dein Zyklus',ru:'Твой цикл'}, questions:[
     { id:'condition', type:'multi', required:true, allowOther:true,
