@@ -292,7 +292,7 @@ const T = {
       ['Срок хранения', `<strong>${STORAGE_DURATION}</strong>, затем безвозвратно удаляются.`],
       ['Кто имеет доступ', `Только ${CONTROLLER_NAME}. Никаких третьих сторон, аналитики и рекламодателей.`],
       ['Ваши права', `Доступ · Исправление · Удаление · Ограничение · Переносимость · Возражение. Контакт: <a href="mailto:${CONTROLLER_EMAIL}">${CONTROLLER_EMAIL}</a> или ссылка удаления на странице подтверждения.`],
-      ['Отзыв согласия', 'Удалите ответ в любое время с помощью ID на странице подтверждения — без входа и объяснений.'],
+      ['Отзыв согласия', 'Вы можете удалить ответ в любое время с помощью ID на странице подтверждения.'],
     ]
   },
   pnFooter:{
@@ -415,14 +415,14 @@ const SURVEY = [
         {v:'na',l:{en:'Prefer not to say',de:'Keine Angabe',ru:'Не указывать'}},
       ]},
     { id:'occupation', type:'multi', required:true, allowOther:true, grid:true,
-      label:{en:'Do you work or study?',de:'Arbeitest oder studierst du?',ru:'Вы работаете или учитесь?'},
+      label:{en:'Do you work or study?',de:'Was trifft derzeit am ehesten auf deine Beschäftigungssituation zu?',ru:'Вы работаете или учитесь?'},
       options:[
         {v:'study',l:{en:'I study',de:'Ich studiere',ru:'Я учусь'}},
-        {v:'w20',l:{en:'Work under 20h / week',de:'Arbeit unter 20 Std./Woche',ru:'Работа менее 20ч/нед'}},
-        {v:'w2035',l:{en:'Work 20–35h / week',de:'Arbeit 20–35 Std./Woche',ru:'Работа 20–35ч/нед'}},
-        {v:'w3540',l:{en:'Work 35–40h / week',de:'Arbeit 35–40 Std./Woche',ru:'Работа 35–40ч/нед'}},
+        {v:'w20',l:{en:'Work under 20h / week',de:'Ich arbeite unter 20 Std./Woche',ru:'Работа менее 20ч/нед'}},
+        {v:'w2035',l:{en:'Work 20–35h / week',de:'Ich arbeite 20–35 Std./Woche',ru:'Работа 20–35ч/нед'}},
+        {v:'w3540',l:{en:'Work 35–40h / week',de:'Ich arbeite 35–40 Std./Woche',ru:'Работа 35–40ч/нед'}},
         {v:'w40',l:{en:'More than 40h / week',de:'Mehr als 40 Std./Woche',ru:'Более 40ч/нед'}},
-        {v:'none',l:{en:'None of the above',de:'Nichts davon',ru:'Ничего из перечисленного'}},
+        {v:'none',l:{en:'None of the above',de:'Weder noch',ru:'Ничего из перечисленного'}},
       ]},
     { id:'smartphone', type:'single', required:true, grid:true,
       label:{en:'Which smartphone do you use?',de:'Welches Smartphone nutzt du?',ru:'Каким смартфоном Вы пользуетесь?'},
@@ -435,7 +435,7 @@ const SURVEY = [
 
   { title:{en:'Health',de:'Gesundheit',ru:'Здоровье'}, questions:[
     { id:'horm', type:'single', required:true, grid:true,
-      label:{en:'Do you use hormonal contraception?',de:'Nimmst du hormonelle Verhütung?',ru:'Используете ли Вы гормональную контрацепцию?'},
+      label:{en:'Do you use hormonal contraception?',de:'Verwendest du derzeit eine hormonelle Verhütungsmethode?',ru:'Используете ли Вы гормональную контрацепцию?'},
       options:[
         {v:'no',l:{en:'No',de:'Nein',ru:'Нет'}},
         {v:'pill',l:{en:'Combined pill',de:'Kombi-Pille',ru:'КОК'}},
@@ -448,9 +448,9 @@ const SURVEY = [
         {v:'other',l:{en:'Other',de:'Anderes',ru:'Другое'}},
       ]},
     { id:'diabetes', type:'single', required:true,
-      label:{en:'Do you have diabetes or prediabetes?',de:'Hast du Diabetes oder Prädiabetes?',ru:'Есть ли у Вас диабет или преддиабет?'},
+      label:{en:'Do you have diabetes or prediabetes?',de:'Welche der folgenden Diagnosen trifft auf dich zu?',ru:'Есть ли у Вас диабет или преддиабет?'},
       options:[
-        {v:'no',l:{en:'No',de:'Nein',ru:'Нет'}},
+        {v:'no',l:{en:'No',de:'Kein Diabetes',ru:'Нет'}},
         {v:'pre',l:{en:'Prediabetes',de:'Prädiabetes',ru:'Преддиабет'}},
         {v:'t1',l:{en:'Type 1 diabetes',de:'Typ-1-Diabetes',ru:'Диабет 1 типа'}},
         {v:'t2',l:{en:'Type 2 (diet / pills only)',de:'Typ-2 (nur Diät/Tabletten)',ru:'Диабет 2 (диета/таблетки)'}},
@@ -470,7 +470,7 @@ const SURVEY = [
 
   { title:{en:'Your cycle',de:'Dein Zyklus',ru:'Твой цикл'}, questions:[
     { id:'condition', type:'multi', required:true, allowOther:true,
-      label:{en:'What describes your cycle now?',de:'Was beschreibt jetzt deinen Zyklus?',ru:'Что описывает Ваш цикл сейчас?'},
+      label:{en:'What describes your cycle now?',de:'Was beschreibt deinen aktuellen Zyklus?',ru:'Что описывает Ваш цикл сейчас?'},
       options:[
         {v:'regular',l:{en:'Regular (21–35 days)',de:'Regelmäßig (21–35 Tage)',ru:'Регулярный (21–35 дней)'}},
         {v:'pregnant',l:{en:'Pregnant',de:'Schwanger',ru:'Беременна'}},
@@ -499,7 +499,7 @@ const SURVEY = [
       label:{en:'How strong are your PMS symptoms?',de:'Wie stark sind deine PMS-Symptome?',ru:'Насколько сильны симптомы ПМС?'},
       ends:{en:['None','Very strong'],de:['Keine','Sehr stark'],ru:['Нет','Очень сильно']}},
     { id:'craving', type:'slider', required:true, sliderType:'intensity',
-      label:{en:'How strong are sweet cravings before your period?',de:'Wie stark ist Heißhunger auf Süßes vor der Periode?',ru:'Насколько сильна тяга к сладкому перед месячными?'},
+      label:{en:'How strong are sweet cravings before your period?',de:'Wie stark ist dein Heißhunger auf Süßes vor der Periode?',ru:'Насколько сильна тяга к сладкому перед месячными?'},
       ends:{en:['None','Very strong'],de:['Keine','Sehr stark'],ru:['Нет','Очень сильно']}},
     { id:'fatigue_meal', type:'slider', required:true, sliderType:'intensity',
       label:{en:'How tired are you after eating?',de:'Wie müde bist du nach dem Essen?',ru:'Насколько заметна усталость после еды?'},
@@ -508,7 +508,7 @@ const SURVEY = [
 
   { title:{en:'Phase awareness',de:'Zykluswahrnehmung',ru:'Восприятие фаз'}, questions:[
     { id:'changes', type:'multi', required:true, allowOther:true, grid:true,
-      label:{en:'What changes for you across phases?',de:'Was verändert sich je nach Phase?',ru:'Что меняется у Вас по фазам?'},
+      label:{en:'What changes for you across phases?',de:'Was verändert sich bei dir je nach Zyklusphase?',ru:'Что меняется у Вас по фазам?'},
       options:[
         {v:'energy',l:{en:'Energy',de:'Energie',ru:'Энергия'}},
         {v:'mood',l:{en:'Mood',de:'Stimmung',ru:'Настроение'}},
@@ -518,6 +518,7 @@ const SURVEY = [
         {v:'sport',l:{en:'Sport performance',de:'Sportliche Leistung',ru:'Спорт. результаты'}},
         {v:'digest',l:{en:'Digestion',de:'Verdauung',ru:'Пищеварение'}},
         {v:'weight',l:{en:'Weight / water',de:'Gewicht / Wasser',ru:'Вес / отёки'}},
+        {v:'nothing',l:{en:'None of the above',de:'Nichts davon',ru:'Ничего из вышеперечисленного'}},
       ]},
   ]},
 
@@ -525,23 +526,23 @@ const SURVEY = [
     { id:'activity', type:'single', required:true,
       label:{en:'How active are you?',de:'Wie aktiv bist du?',ru:'Насколько Вы активны?'},
       options:[
-        {v:'low',l:{en:'Mostly sitting',de:'Hauptsächlich sitzend',ru:'В основном сидячий'}},
-        {v:'light',l:{en:'Light — 1–2× / week',de:'Leicht — 1–2× / Woche',ru:'Лёгкая — 1–2× / нед.'}},
-        {v:'mod',l:{en:'Moderate — 3–4× / week',de:'Mäßig — 3–4× / Woche',ru:'Средняя — 3–4× / нед.'}},
-        {v:'high',l:{en:'Very active — daily',de:'Sehr aktiv — täglich',ru:'Очень активная — ежедневно'}},
+        {v:'low',l:{en:'Not active',de:'Inaktiv',ru:'Не активна'}},
+        {v:'light',l:{en:'Light — 1–2× / week',de:'Leicht — 1–2× / Woche',ru:'Лёгкая активность — 1–2× / нед.'}},
+        {v:'mod',l:{en:'Moderate — 3–4× / week',de:'Mäßig — 3–4× / Woche',ru:'Средняя активность — 3–4× / нед.'}},
+        {v:'high',l:{en:'Very active — daily',de:'Sehr aktiv — täglich',ru:'Очень активная — тренировки ежедневно'}},
       ]},
     { id:'tracking', type:'multi', required:true, allowOther:true, grid:true,
       label:{en:'What do you already track?',de:'Was trackst du bereits?',ru:'Что Вы уже отслеживаете?'},
       options:[
         {v:'steps',l:{en:'Steps / activity',de:'Schritte / Aktivität',ru:'Шаги / активность'}},
-        {v:'cycle',l:{en:'Cycle app',de:'Zyklus-App',ru:'Приложение цикла'}},
+        {v:'cycle',l:{en:'Cycle',de:'Menstruationszyklus',ru:'Цикл'}},
         {v:'sleep',l:{en:'Sleep',de:'Schlaf',ru:'Сон'}},
         {v:'hr',l:{en:'Heart rate',de:'Herzfrequenz',ru:'Пульс'}},
         {v:'cgm',l:{en:'CGM / glucose',de:'CGM / Glukose',ru:'CGM / глюкоза'}},
         {v:'nothing',l:{en:'Nothing',de:'Nichts',ru:'Ничего'}},
       ]},
     { id:'period_app', type:'multi', required:false, allowOther:true, grid:true,
-      label:{en:'Which period tracking app do you use?',de:'Welche Zyklus-App nutzt du?',ru:'Какое приложение для цикла Вы используете?'},
+      label:{en:'Which period tracking app do you use?',de:'Nutzt du eine App zum Zyklus-Tracking?',ru:'Какое приложение для цикла Вы используете?'},
       options:[
         {v:'clue',l:{en:'Clue',de:'Clue',ru:'Clue'}},
         {v:'flo',l:{en:'Flo',de:'Flo',ru:'Flo'}},
