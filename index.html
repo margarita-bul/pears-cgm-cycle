@@ -54,6 +54,9 @@ nav{position:sticky;top:0;z-index:99;height:58px;display:flex;align-items:center
 .q.invalid .q-err{display:block}
 .q.invalid .opts-box{outline:1.5px solid rgba(170,10,40,.3);outline-offset:6px;border-radius:12px}
 
+/* Inline notice (e.g. shown after a specific answer) */
+.q-notice{margin-top:.75rem;padding:.85rem 1rem;background:rgba(170,10,40,.07);border:1px solid rgba(170,10,40,.18);border-left:3px solid var(--red);border-radius:10px;font-size:.8rem;color:var(--ink2);line-height:1.55;font-weight:300}
+
 /* Privacy modal overlay */
 .pn-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(20,10,12,.55);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:1rem}
 .pn-overlay.open{display:flex}
@@ -209,10 +212,10 @@ const ENDPOINT = 'https://script.google.com/macros/s/AKfycbwAPnaRG27N_25KCq4BgKH
 // ════════════════════════════════════════════════════════════════════
 //  FILL IN BEFORE PUBLISHING
 // ════════════════════════════════════════════════════════════════════
-const CONTROLLER_NAME    = 'Glycles';  
+const CONTROLLER_NAME    = '<<YOUR_NAME_OR_COMPANY>>';  // e.g. 'Margarita Bulgacheva'
 const CONTROLLER_EMAIL   = 'glycles.info@gmail.com';
-const CONTROLLER_LOCATION= 'Germany';     
-const STORAGE_DURATION   = '12 months after collection';       
+const CONTROLLER_LOCATION= '<<YOUR_CITY_COUNTRY>>';     // e.g. 'Darmstadt, Germany'
+const STORAGE_DURATION   = '<<STORAGE_DURATION>>';       // e.g. '12 months after collection'
 // ════════════════════════════════════════════════════════════════════
 
 const T = {
@@ -245,7 +248,7 @@ const T = {
   idBlockLabel:{
     en:'Save this ID to delete your response later (GDPR right to erasure):',
     de:'Speichere diese ID, um deine Antwort später zu löschen (DSGVO-Recht auf Löschung):',
-    ru:'Сохраните ID для удаления ответа (право на удаление по GDPR):'
+    ru:'Сохраните ID для удаления ответа (право на стирание по GDPR):'
   },
   copyBtn:{en:'Copy',de:'Kopieren',ru:'Копировать'},
   copyDone:{en:'Copied ✓',de:'Kopiert ✓',ru:'Скопировано ✓'},
@@ -292,13 +295,20 @@ const T = {
       ['Срок хранения', `<strong>${STORAGE_DURATION}</strong>, затем безвозвратно удаляются.`],
       ['Кто имеет доступ', `Только ${CONTROLLER_NAME}. Никаких третьих сторон, аналитики и рекламодателей.`],
       ['Ваши права', `Доступ · Исправление · Удаление · Ограничение · Переносимость · Возражение. Контакт: <a href="mailto:${CONTROLLER_EMAIL}">${CONTROLLER_EMAIL}</a> или ссылка удаления на странице подтверждения.`],
-      ['Отзыв согласия', 'Вы можете удалить ответ в любое время с помощью ID на странице подтверждения.'],
+      ['Отзыв согласия', 'Удалите ответ в любое время с помощью ID на странице подтверждения — без входа и объяснений.'],
     ]
   },
   pnFooter:{
     en:`This notice complies with GDPR (EU) 2016/679. Questions: ${CONTROLLER_EMAIL}`,
     de:`Dieser Hinweis entspricht der DSGVO (EU) 2016/679. Fragen: ${CONTROLLER_EMAIL}`,
     ru:`Соответствует GDPR (ЕС) 2016/679. Вопросы: ${CONTROLLER_EMAIL}`
+  },
+
+  // ── Sex=male notice ──────────────────────────────────────────────
+  sexMaleNotice:{
+    en:'A quick note: Glycles is being designed for people who menstruate, so most questions focus on the menstrual cycle. You are very welcome to continue — your answers still help us — but some questions may not apply to you.',
+    de:'Kurzer Hinweis: Glycles wird für menstruierende Personen entwickelt, daher beziehen sich die meisten Fragen auf den Menstruationszyklus. Du kannst gerne fortfahren — deine Antworten helfen uns trotzdem — aber einige Fragen treffen möglicherweise nicht auf dich zu.',
+    ru:'Небольшое примечание: Glycles разрабатывается для людей, у которых есть менструация, поэтому большинство вопросов касаются менструального цикла. Вы можете продолжить — Ваши ответы всё равно помогут нам — но некоторые вопросы могут к Вам не относиться.'
   },
 
   disclaimer:{
@@ -311,8 +321,8 @@ const T = {
 const SLIDER_LABELS = {
   intensity:{
     en:['None','Barely','Mild','A bit bothersome','Noticeable','Manageable','Clear','Strong','Very strong','Severe','Extreme'],
-    de:['Keine','Kaum','Leicht','Etwas lästig','Merklich','Handhabbar','Deutlich','Stark','Sehr stark','Schwer','Extrem'],
-    ru:['Нет','Едва','Слабо','Немного мешает','Заметно','Терпимо','Определенно','Сильно','Очень сильно','Тяжело','Невыносимо']
+    de:['Keine','Kaum','Leicht','Etwas lästig','Merklich','Mittel','Deutlich','Stark','Sehr stark','Schwer','Extrem'],
+    ru:['Нет','Едва','Слабо','Немного мешает','Заметно','Терпимо','Определённо','Сильно','Очень сильно','Тяжело','Невыносимо']
   },
   diff:{
     en:['No difference','Barely','Very slight','Slight','Somewhat','Clear','Very clear','Strongly different','Completely','Almost foreign','Like two people'],
@@ -407,6 +417,7 @@ const SURVEY = [
         {v:'55+',l:{en:'55+',de:'55+',ru:'55+'}},
       ]},
     { id:'sex', type:'single', required:true, grid:true,
+      noticeIf:{ value:'m', text:'sexMaleNotice' },
       label:{en:'Sex',de:'Geschlecht',ru:'Пол'},
       options:[
         {v:'f',l:{en:'Female',de:'Weiblich',ru:'Женский'}},
@@ -415,14 +426,14 @@ const SURVEY = [
         {v:'na',l:{en:'Prefer not to say',de:'Keine Angabe',ru:'Не указывать'}},
       ]},
     { id:'occupation', type:'multi', required:true, allowOther:true, grid:true,
-      label:{en:'Do you work or study?',de:'Was trifft derzeit am ehesten auf deine Beschäftigungssituation zu?',ru:'Вы работаете или учитесь?'},
+      label:{en:'Do you work or study?',de:'Arbeitest oder studierst du?',ru:'Вы работаете или учитесь?'},
       options:[
         {v:'study',l:{en:'I study',de:'Ich studiere',ru:'Я учусь'}},
-        {v:'w20',l:{en:'Work under 20h / week',de:'Ich arbeite unter 20 Std./Woche',ru:'Работа менее 20ч/нед'}},
-        {v:'w2035',l:{en:'Work 20–35h / week',de:'Ich arbeite 20–35 Std./Woche',ru:'Работа 20–35ч/нед'}},
-        {v:'w3540',l:{en:'Work 35–40h / week',de:'Ich arbeite 35–40 Std./Woche',ru:'Работа 35–40ч/нед'}},
+        {v:'w20',l:{en:'Work under 20h / week',de:'Arbeit unter 20 Std./Woche',ru:'Работа менее 20ч/нед'}},
+        {v:'w2035',l:{en:'Work 20–35h / week',de:'Arbeit 20–35 Std./Woche',ru:'Работа 20–35ч/нед'}},
+        {v:'w3540',l:{en:'Work 35–40h / week',de:'Arbeit 35–40 Std./Woche',ru:'Работа 35–40ч/нед'}},
         {v:'w40',l:{en:'More than 40h / week',de:'Mehr als 40 Std./Woche',ru:'Более 40ч/нед'}},
-        {v:'none',l:{en:'None of the above',de:'Weder noch',ru:'Ничего из перечисленного'}},
+        {v:'none',l:{en:'None of the above',de:'Nichts davon',ru:'Ничего из перечисленного'}},
       ]},
     { id:'smartphone', type:'single', required:true, grid:true,
       label:{en:'Which smartphone do you use?',de:'Welches Smartphone nutzt du?',ru:'Каким смартфоном Вы пользуетесь?'},
@@ -431,11 +442,25 @@ const SURVEY = [
         {v:'android',l:{en:'Android',de:'Android',ru:'Android'}},
         {v:'other',l:{en:'Other / none',de:'Anderes / keins',ru:'Другое / нет'}},
       ]},
+    { id:'insurance', type:'single', required:true, grid:true, allowOther:true,
+      label:{en:'Which health insurance do you have?',de:'Welche Krankenversicherung hast du?',ru:'Какая у Вас медицинская страховка?'},
+      options:[
+        {v:'tk',l:{en:'Techniker Krankenkasse (TK)',de:'Techniker Krankenkasse (TK)',ru:'Techniker Krankenkasse (TK)'}},
+        {v:'barmer',l:{en:'Barmer',de:'Barmer',ru:'Barmer'}},
+        {v:'aok',l:{en:'AOK',de:'AOK',ru:'AOK'}},
+        {v:'dak',l:{en:'DAK-Gesundheit',de:'DAK-Gesundheit',ru:'DAK-Gesundheit'}},
+        {v:'ikk',l:{en:'IKK',de:'IKK',ru:'IKK'}},
+        {v:'kkh',l:{en:'KKH',de:'KKH',ru:'KKH'}},
+        {v:'hkk',l:{en:'hkk',de:'hkk',ru:'hkk'}},
+        {v:'private',l:{en:'Private insurance (PKV)',de:'Private Krankenversicherung (PKV)',ru:'Частная страховка (PKV)'}},
+        {v:'other',l:{en:'Other German insurance',de:'Andere deutsche Krankenkasse',ru:'Другая немецкая страховка'}},
+        {v:'none',l:{en:'Not insured in Germany',de:'Nicht in Deutschland versichert',ru:'Не застрахована в Германии'}},
+      ]},
   ]},
 
   { title:{en:'Health',de:'Gesundheit',ru:'Здоровье'}, questions:[
     { id:'horm', type:'single', required:true, grid:true,
-      label:{en:'Do you use hormonal contraception?',de:'Verwendest du derzeit eine hormonelle Verhütungsmethode?',ru:'Используете ли Вы гормональную контрацепцию?'},
+      label:{en:'Do you use hormonal contraception?',de:'Nimmst du hormonelle Verhütung?',ru:'Используете ли Вы гормональную контрацепцию?'},
       options:[
         {v:'no',l:{en:'No',de:'Nein',ru:'Нет'}},
         {v:'pill',l:{en:'Combined pill',de:'Kombi-Pille',ru:'КОК'}},
@@ -448,9 +473,9 @@ const SURVEY = [
         {v:'other',l:{en:'Other',de:'Anderes',ru:'Другое'}},
       ]},
     { id:'diabetes', type:'single', required:true,
-      label:{en:'Do you have diabetes or prediabetes?',de:'Welche der folgenden Diagnosen trifft auf dich zu?',ru:'Есть ли у Вас диабет или преддиабет?'},
+      label:{en:'Do you have diabetes or prediabetes?',de:'Hast du Diabetes oder Prädiabetes?',ru:'Есть ли у Вас диабет или преддиабет?'},
       options:[
-        {v:'no',l:{en:'No',de:'Kein Diabetes',ru:'Нет'}},
+        {v:'no',l:{en:'No',de:'Nein',ru:'Нет'}},
         {v:'pre',l:{en:'Prediabetes',de:'Prädiabetes',ru:'Преддиабет'}},
         {v:'t1',l:{en:'Type 1 diabetes',de:'Typ-1-Diabetes',ru:'Диабет 1 типа'}},
         {v:'t2',l:{en:'Type 2 (diet / pills only)',de:'Typ-2 (nur Diät/Tabletten)',ru:'Диабет 2 (диета/таблетки)'}},
@@ -470,7 +495,7 @@ const SURVEY = [
 
   { title:{en:'Your cycle',de:'Dein Zyklus',ru:'Твой цикл'}, questions:[
     { id:'condition', type:'multi', required:true, allowOther:true,
-      label:{en:'What describes your cycle now?',de:'Was beschreibt deinen aktuellen Zyklus?',ru:'Что описывает Ваш цикл сейчас?'},
+      label:{en:'What describes your cycle now?',de:'Was beschreibt jetzt deinen Zyklus?',ru:'Что описывает Ваш цикл сейчас?'},
       options:[
         {v:'regular',l:{en:'Regular (21–35 days)',de:'Regelmäßig (21–35 Tage)',ru:'Регулярный (21–35 дней)'}},
         {v:'pregnant',l:{en:'Pregnant',de:'Schwanger',ru:'Беременна'}},
@@ -499,7 +524,7 @@ const SURVEY = [
       label:{en:'How strong are your PMS symptoms?',de:'Wie stark sind deine PMS-Symptome?',ru:'Насколько сильны симптомы ПМС?'},
       ends:{en:['None','Very strong'],de:['Keine','Sehr stark'],ru:['Нет','Очень сильно']}},
     { id:'craving', type:'slider', required:true, sliderType:'intensity',
-      label:{en:'How strong are sweet cravings before your period?',de:'Wie stark ist dein Heißhunger auf Süßes vor der Periode?',ru:'Насколько сильна тяга к сладкому перед месячными?'},
+      label:{en:'How strong are sweet cravings before your period?',de:'Wie stark ist Heißhunger auf Süßes vor der Periode?',ru:'Насколько сильна тяга к сладкому перед месячными?'},
       ends:{en:['None','Very strong'],de:['Keine','Sehr stark'],ru:['Нет','Очень сильно']}},
     { id:'fatigue_meal', type:'slider', required:true, sliderType:'intensity',
       label:{en:'How tired are you after eating?',de:'Wie müde bist du nach dem Essen?',ru:'Насколько заметна усталость после еды?'},
@@ -508,7 +533,7 @@ const SURVEY = [
 
   { title:{en:'Phase awareness',de:'Zykluswahrnehmung',ru:'Восприятие фаз'}, questions:[
     { id:'changes', type:'multi', required:true, allowOther:true, grid:true,
-      label:{en:'What changes for you across phases?',de:'Was verändert sich bei dir je nach Zyklusphase?',ru:'Что меняется у Вас по фазам?'},
+      label:{en:'What changes for you across phases?',de:'Was verändert sich je nach Phase?',ru:'Что меняется у Вас по фазам?'},
       options:[
         {v:'energy',l:{en:'Energy',de:'Energie',ru:'Энергия'}},
         {v:'mood',l:{en:'Mood',de:'Stimmung',ru:'Настроение'}},
@@ -518,7 +543,6 @@ const SURVEY = [
         {v:'sport',l:{en:'Sport performance',de:'Sportliche Leistung',ru:'Спорт. результаты'}},
         {v:'digest',l:{en:'Digestion',de:'Verdauung',ru:'Пищеварение'}},
         {v:'weight',l:{en:'Weight / water',de:'Gewicht / Wasser',ru:'Вес / отёки'}},
-        {v:'nothing',l:{en:'None of the above',de:'Nichts davon',ru:'Ничего из вышеперечисленного'}},
       ]},
   ]},
 
@@ -526,23 +550,23 @@ const SURVEY = [
     { id:'activity', type:'single', required:true,
       label:{en:'How active are you?',de:'Wie aktiv bist du?',ru:'Насколько Вы активны?'},
       options:[
-        {v:'low',l:{en:'Not active',de:'Inaktiv',ru:'Не активна'}},
-        {v:'light',l:{en:'Light — 1–2× / week',de:'Leicht — 1–2× / Woche',ru:'Лёгкая активность — 1–2× / нед.'}},
-        {v:'mod',l:{en:'Moderate — 3–4× / week',de:'Mäßig — 3–4× / Woche',ru:'Средняя активность — 3–4× / нед.'}},
-        {v:'high',l:{en:'Very active — daily',de:'Sehr aktiv — täglich',ru:'Очень активная — тренировки ежедневно'}},
+        {v:'low',l:{en:'Mostly sitting',de:'Hauptsächlich sitzend',ru:'В основном сидячий'}},
+        {v:'light',l:{en:'Light — 1–2× / week',de:'Leicht — 1–2× / Woche',ru:'Лёгкая — 1–2× / нед.'}},
+        {v:'mod',l:{en:'Moderate — 3–4× / week',de:'Mäßig — 3–4× / Woche',ru:'Средняя — 3–4× / нед.'}},
+        {v:'high',l:{en:'Very active — daily',de:'Sehr aktiv — täglich',ru:'Очень активная — ежедневно'}},
       ]},
     { id:'tracking', type:'multi', required:true, allowOther:true, grid:true,
       label:{en:'What do you already track?',de:'Was trackst du bereits?',ru:'Что Вы уже отслеживаете?'},
       options:[
         {v:'steps',l:{en:'Steps / activity',de:'Schritte / Aktivität',ru:'Шаги / активность'}},
-        {v:'cycle',l:{en:'Cycle',de:'Menstruationszyklus',ru:'Цикл'}},
+        {v:'cycle',l:{en:'Cycle app',de:'Zyklus-App',ru:'Приложение цикла'}},
         {v:'sleep',l:{en:'Sleep',de:'Schlaf',ru:'Сон'}},
         {v:'hr',l:{en:'Heart rate',de:'Herzfrequenz',ru:'Пульс'}},
         {v:'cgm',l:{en:'CGM / glucose',de:'CGM / Glukose',ru:'CGM / глюкоза'}},
         {v:'nothing',l:{en:'Nothing',de:'Nichts',ru:'Ничего'}},
       ]},
     { id:'period_app', type:'multi', required:false, allowOther:true, grid:true,
-      label:{en:'Which period tracking app do you use?',de:'Nutzt du eine App zum Zyklus-Tracking?',ru:'Какое приложение для цикла Вы используете?'},
+      label:{en:'Which period tracking app do you use?',de:'Welche Zyklus-App nutzt du?',ru:'Какое приложение для цикла Вы используете?'},
       options:[
         {v:'clue',l:{en:'Clue',de:'Clue',ru:'Clue'}},
         {v:'flo',l:{en:'Flo',de:'Flo',ru:'Flo'}},
@@ -756,6 +780,15 @@ function renderQ(q){
   }
 
   wrap.appendChild(box);
+
+  // Conditional notice (e.g. when male selected on the sex question)
+  if(q.noticeIf && answers[q.id] === q.noticeIf.value){
+    const notice = document.createElement('div');
+    notice.className = 'q-notice';
+    notice.textContent = L(T[q.noticeIf.text]);
+    wrap.appendChild(notice);
+  }
+
   const err = document.createElement('div'); err.className = 'q-err';
   err.textContent = q.type === 'consent' ? L(T.errConsent) : L(T.errReq);
   wrap.appendChild(err);
