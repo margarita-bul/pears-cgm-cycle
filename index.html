@@ -133,6 +133,15 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
 
 .disclaimer{position:relative;z-index:1;text-align:center;font-size:.7rem;color:var(--muted);padding:1.5rem;line-height:1.6;max-width:560px;margin:0 auto;font-weight:300}
 
+/* Team section */
+.team{margin-bottom:2rem}
+.team-grid{display:flex;flex-direction:column;gap:1rem}
+.team-card{background:rgba(255,255,255,.5);backdrop-filter:blur(28px) saturate(1.3);-webkit-backdrop-filter:blur(28px) saturate(1.3);border:1px solid rgba(255,255,255,.65);border-radius:20px;padding:1.5rem 1.6rem;box-shadow:0 10px 40px rgba(90,40,30,.08)}
+.team-name{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;color:var(--ink);letter-spacing:-.01em}
+.team-role{font-size:.76rem;color:var(--red);font-weight:600;margin-top:.15rem;margin-bottom:.85rem}
+.team-bio p{font-size:.84rem;color:var(--ink2);line-height:1.65;font-weight:300;margin-bottom:.6rem}
+.team-bio p:last-child{margin-bottom:0}
+
 @media(max-width:520px){
   nav{padding:0 1rem}
   .page{padding:1.5rem 1rem 3rem}
@@ -176,6 +185,8 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
     <p id="intro-p"></p>
   </div>
 
+  <div class="team" id="team"></div>
+
   <div class="card" id="card">
     <div class="prog-wrap">
       <div class="prog-track"><div class="prog-fill" id="prog" style="width:0%"></div></div>
@@ -216,6 +227,57 @@ const CONTROLLER_EMAIL   = 'glycles.info@gmail.com';
 const CONTROLLER_LOCATION= 'Germany';
 const STORAGE_DURATION   = '12 months after collection';
 // ════════════════════════════════════════════════════════════════════
+
+// ── Team section content ──────────────────────────────────────────
+const TEAM = [
+  {
+    name: 'Ekaterina',
+    role: {
+      en:'Co-founder · Researcher, Universitätsmedizin Mainz',
+      de:'Mitgründerin · Forscherin, Universitätsmedizin Mainz',
+      ru:'Соосновательница · Исследователь, Университетская клиника Майнца'
+    },
+    bio: {
+      en:[
+        "I'm a researcher in cardiometabolic disorders at Universitätsmedizin Mainz. I've also been living with type 1 diabetes for three years.",
+        "The inspiration for Glycles came from my own experience: eating the same food, following the same routine, and making similar daily choices doesn't always lead to the same glucose response. My blood sugar patterns can look very different from week to week, especially across different phases of the menstrual cycle.",
+        "This made me realize how little current diabetes tools explain about cycle-related glucose variability. With Glycles, we want to understand these patterns better and help women using insulin and CGM recognize when they may need to pay closer attention to their glucose trends and daily routines."
+      ],
+      de:[
+        "Ich bin Forscherin für kardiometabolische Erkrankungen am Universitätsmedizin Mainz. Außerdem lebe ich seit drei Jahren mit Typ-1-Diabetes.",
+        "Die Idee zu Glycles kam aus meiner eigenen Erfahrung: Das gleiche Essen, die gleiche Routine und ähnliche Alltagsentscheidungen führen nicht immer zur gleichen Glukosereaktion. Meine Blutzuckerwerte können sich von Woche zu Woche stark unterscheiden, besonders über die verschiedenen Phasen des Menstruationszyklus hinweg.",
+        "Das hat mir gezeigt, wie wenig aktuelle Diabetes-Tools über zyklusbedingte Glukoseschwankungen erklären. Mit Glycles wollen wir diese Muster besser verstehen und Frauen, die Insulin und CGM nutzen, dabei helfen zu erkennen, wann sie ihren Glukosetrends und Routinen mehr Aufmerksamkeit schenken sollten."
+      ],
+      ru:[
+        "Я кандидат наук в области кардиометаболических заболеваний в Университетской клинике Майнца. Также я уже три года живу с диабетом 1 типа.",
+        "Идея glycles родилась из моего личного опыта: одна и та же еда, один и тот же режим и похожие повседневные решения не всегда приводят к одинаковым показателям глюкозы. Они сильно отличаются от недели к неделе, особенно в разные фазы менструального цикла.",
+        "Существующие инструменты для диабета не объясняют колебания глюкозы, связанные с циклом. С glycles мы хотим лучше понять эти закономерности и помочь женщинам, использующим инсулин и сенсоры непрерывного контроля сахара, распознавать моменты, когда стоит внимательнее отнестись к своим показателям глюкозы и повседневным привычкам."
+      ]
+    }
+  },
+  {
+    name: 'Margarita',
+    role: {
+      en:'Co-founder · PhD Researcher, TU Darmstadt',
+      de:'Mitgründerin · Doktorandin, TU Darmstadt',
+      ru:'Соосновательница · Аспирантка, TU Darmstadt'
+    },
+    bio: {
+      en:[
+        "I'm a PhD researcher in accelerator physics at TU Darmstadt. I've always liked building projects with real, direct impact, and when Ekaterina told me about this idea, I immediately felt I wanted to help make it happen.",
+        "As a woman, I understand the everyday struggles our cycle brings, and I can only imagine how much harder it is to manage diabetes when you can't predict how your body will respond to insulin. I believe diabetes management can be less stressful, and that's the goal of Glycles: to make life easier for women with T1D."
+      ],
+      de:[
+        "Ich bin Doktorandin in Beschleunigerphysik an der TU Darmstadt. Ich habe schon immer gerne Projekte mit echtem, direktem Impact umgesetzt, und als Ekaterina mir von dieser Idee erzählte, wusste ich sofort, dass ich mithelfen wollte.",
+        "Als Frau kenne ich die alltäglichen Herausforderungen, die unser Zyklus mit sich bringt, und ich kann nur erahnen, wie viel schwerer es ist, Diabetes zu managen, wenn man nicht vorhersehen kann, wie der Körper auf Insulin reagiert. Ich glaube, Diabetesmanagement kann weniger stressig sein, und genau das ist das Ziel von Glycles: das Leben von Frauen mit Typ-1-Diabetes zu erleichtern."
+      ],
+      ru:[
+        "Я получаю PhD по физике ускорителей в Дармштадтском техническом университете. Мне всегда нравилось реализовывать социально значимые проекты, и когда Екатерина рассказала мне об этой идее, я сразу поняла, что хочу помочь воплотить её в жизнь.",
+        "Как женщина, я понимаю, какие трудности может привносить менструальный цикл в повседневную жизнь, и могу только представить, насколько сложнее управлять диабетом, когда невозможно предсказать реакцию организма на инсулин. Я верю, что управление диабетом может быть проще, и именно в этом цель Glycles: сделать жизнь женщин с диабетом 1 типа легче."
+      ]
+    }
+  }
+];
 
 const T = {
   introH:{
@@ -835,6 +897,25 @@ document.getElementById('lang').addEventListener('click', e => {
   paintStatic(); render();
 });
 
+function renderTeam(){
+  const wrap = document.getElementById('team');
+  wrap.innerHTML = '';
+  const grid = document.createElement('div');
+  grid.className = 'team-grid';
+  TEAM.forEach(member => {
+    const card = document.createElement('div');
+    card.className = 'team-card';
+    const bioHtml = member.bio[lang].map(p => `<p>${p}</p>`).join('');
+    card.innerHTML = `
+      <div class="team-name">${member.name}</div>
+      <div class="team-role">${L(member.role)}</div>
+      <div class="team-bio">${bioHtml}</div>
+    `;
+    grid.appendChild(card);
+  });
+  wrap.appendChild(grid);
+}
+
 function paintStatic(){
   const h = T.introH[lang];
   document.getElementById('intro-h').innerHTML = `${h[0]}<em>${h[1]}</em>`;
@@ -846,6 +927,7 @@ function paintStatic(){
   document.getElementById('copy-btn').textContent = L(T.copyBtn);
   document.getElementById('delete-link').textContent = L(T.deleteLink);
   buildModalContent();
+  renderTeam();
 }
 
 // ── Privacy notice modal ──────────────────────────────────
